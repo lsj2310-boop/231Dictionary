@@ -1,0 +1,34 @@
+# Never commit personal API credentials or runtime data
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+*credentials*
+*secrets*
+!SECURITY.md
+
+# 231Dictionary runtime files
+*.log
+diagnostic.log
+settings.json
+config.local.json
+*.dpapi
+*.cred
+
+# Build outputs and local tooling
+231Dictionary.exe
+*_Installer*.exe
+*.zip
+*.exe
+*.test
+*.out
+bin/
+build/
+dist/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,1138 @@
+# 231Dictionary v1.3 | TDM 이상일 제작 | local definitions
+# Format: English word<TAB>Korean meaning
+ability	능력
+abnormal	비정상적인
+about	약, 관하여
+above	위에, 상기
+abrasion	마모, 찰과
+absence	부재, 결석
+absolute	절대적인
+absorber	감쇠기, 쇼크업소버
+acceleration	가속도
+accelerator	가속페달
+access	접근, 접속
+accountability	책무, 결과에 대한 책임
+accumulated	누적된
+accumulation	누적
+accuracy	정확도
+accurate	정확한
+accurately	정확하게
+achievement	달성, 성과
+action	조치, 실행
+actions	조치사항
+active	활성 상태의
+actual	실제, 실적
+actuals	실적
+actuator	액추에이터, 작동장치
+addendum	추가 자료, 부록
+addition	추가
+additional	추가의
+adequate	충분한
+adhesive	접착제
+adjust	조정하다
+adjusted	조정된
+adjustment	조정
+admin	관리자
+administrator	관리자
+after	이후, 뒤에
+afternoon	오후
+agenda	회의 안건
+air	공기
+airhorn	에어혼, 공기식 경적
+alarm	경보
+alert	경고, 알림
+algorithm	알고리즘
+alignment	정렬
+all	모두
+already	이미
+alternative	대안
+although	비록 ~하지만
+aluminum	알루미늄
+always	항상
+amendment	수정, 개정
+among	여러 대상 사이에
+amount	수량, 금액
+ampere	암페어
+analysis	분석
+analyze	분석하다
+angle	각도
+annex	부속서
+announcement	안내, 발표
+annual	연간의
+anomalous	이상한, 비정상적인
+anomaly	이상, 비정상
+anticipated	예상된
+any	어떤, 아무
+api	응용 프로그램 인터페이스
+append	덧붙이다
+appendix	부록
+applicable	적용되는
+application	적용, 응용, 신청
+apply	적용하다
+appropriate	적절한
+approval	승인
+approved	승인된
+approximately	대략, 약
+around	약, 주변에
+assembled	조립된
+assembly	조립
+assess	평가하다
+assessed	평가된
+assessment	평가
+assign	배정하다
+assigned	배정된
+assignment	업무 배정
+attached	첨부된
+attachment	첨부
+attempt	시도
+attendance	참석
+attendee	참석자
+audit	감사, 심사
+auditing	심사 활동
+auditor	심사원
+authentic	진짜의, 정품의
+authentication	인증
+authorization	권한 부여, 승인
+authorize	승인하다
+authorized	승인된, 권한이 있는
+automobile	자동차
+availability	가용성
+available	이용 가능한
+average	평균
+axle	차축
+backup	백업
+baseline	기준선
+batch	생산 배치, 일괄 작업
+bearing	베어링
+because	왜냐하면
+before	이전, 전에
+below	아래에, 이하
+belt	벨트
+benchmark	비교 기준
+benchmarking	벤치마킹
+bend	굽히다
+bending	굽힘, 벤딩
+between	사이에
+blister	기포, 물집
+blistering	기포 발생, 부풀음
+blockage	막힘
+blocked	차단됨
+blocking	차단
+blower	송풍기
+body	차체, 바디
+bold	굵게
+bolt	볼트
+bond	접합, 결합
+bonnet	보닛
+both	둘 다
+bracket	브래킷
+brake	브레이크, 제동
+braking	제동
+breakage	파손
+broken	파손된
+bsc	균형성과표
+budget	예산
+bug	버그, 오류
+bushing	부싱
+business	사업, 업무
+button	버튼
+cab	캡, 운전실
+cabin	운전실, 객실
+cable	케이블
+calibrate	보정하다
+calibration	교정, 보정
+campaign	캠페인, 무상수리
+camshaft	캠축
+capability	역량, 능력
+capacity	용량, 수용능력
+capture	캡처, 포착
+captured	포착된
+category	범주, 분류
+cause	원인
+causes	원인들
+certain	확실한
+certificate	인증서
+certification	인증
+certified	인증된
+channel	채널, 홈
+chassis	차대, 섀시
+check	확인, 점검
+checked	확인된
+checklist	점검표
+chief	최고책임자, 주요한
+choice	선택
+circuit	회로
+claim	보증청구, 클레임
+claims	보증청구건
+clamp	클램프
+clarification	설명, 명확화
+clarify	명확히 하다
+class	등급, 수업
+classification	분류
+classify	분류하다
+clean	깨끗한, 청소하다
+cleaning	세척, 청소
+cleansing	정화
+clear	명확한
+clearance	간극, 유격
+click	클릭
+client	클라이언트
+clip	클립, 고정핀
+clogged	막힌
+clogging	막힘
+closed	종결된, 종료된
+cluster	계기판, 클러스터
+clutch	클러치
+coating	코팅, 도막
+cold	차가운
+collaborate	협업하다
+collaboration	협업
+combined	결합된
+comment	의견, 주석
+comments	의견, 주석
+commercial	상업용, 상용의
+common	공통의, 흔한
+communicate	소통하다
+communication	소통, 전달
+company	회사
+compare	비교하다
+comparison	비교
+complaint	불만, 민원
+complaints	불만 사항
+complete	완료된, 완성하다
+completed	완료된
+completely	완전히
+completion	완료, 완성
+compliance	준수
+compliant	규정에 부합하는
+component	구성품, 부품
+components	구성품들, 부품
+composite	복합재
+compressor	컴프레서
+concern	우려, 문제
+concerning	관련된, 우려되는
+condition	조건, 상태
+conditions	조건들, 상태
+conference	회의, 협의회
+confidential	기밀의, 비밀의
+configuration	구성, 설정
+configure	설정하다
+confirm	확인하다
+confirmed	확인된
+conformity	적합
+connect	연결하다
+connected	연결된
+connection	연결
+connectivity	연결 상태
+connector	커넥터, 연결기
+consequently	그 결과
+consumer	소비자
+contact	연락, 접점
+containment	확산 방지, 임시 격리
+contaminated	오염된
+contamination	오염
+continuous	연속적인, 지속적인
+continuously	지속적으로
+control	제어, 관리
+controlled	제어되는
+controller	제어기
+coolant	냉각수
+cooling	냉각
+cooperate	협력하다
+cooperation	협조, 협력
+coordinate	조율하다
+coordination	조율, 협의
+copy	복사하다
+corporate	기업의, 법인의
+corrective	시정의, 개선의
+corrosion	부식
+cost	원가, 비용
+countermeasure	대책, 대응책
+countermeasures	대책들
+cover	커버, 덮개
+crack	균열
+cracking	균열 발생
+crankshaft	크랭크축
+credentials	인증정보
+criteria	기준, 판단 조건
+criterion	기준, 판단 조건
+critical	중대한, 핵심적인
+cumulative	누적된
+current	현재의
+currently	현재
+cursor	커서
+customer	고객
+cut	잘라내기
+cyber	사이버
+cybersecurity	사이버보안
+cylinder	실린더
+daily	일간의, 매일
+damage	손상, 파손
+damaged	손상된
+damper	댐퍼, 감쇠기
+date	일자, 날짜
+deadline	마감기한
+decision	결정
+decrease	감소, 줄이다
+defect	결함, 불량
+defective	불량의, 결함 있는
+defects	결함들, 불량
+definition	정의, 뜻
+deformation	변형
+delay	지연
+delayed	지연된
+delete	삭제
+delivery	납품, 인도
+dent	찌그러짐
+department	부서
+design	설계
+detect	탐지하다
+detection	탐지, 검출
+device	장치
+diameter	직경
+dictionary	사전
+diesel	경유, 디젤
+difference	차이
+different	다른
+differential	차동기어
+director	이사, 부장급 책임자
+disable	비활성화하다
+disabled	비활성화된
+disassembly	분해
+disconnect	연결 해제
+division	본부, 부문
+document	문서, 서류
+documentation	문서화, 관련 문서
+domain	도메인
+domestic	국내의, 내수
+door	문, 도어
+double	이중의, 두 배
+download	다운로드
+driveline	동력전달계
+dump	덤프, 쏟아내다
+durability	내구성
+early	초기, 조기
+education	교육
+either	어느 하나
+emission	배출, 배기가스
+emissions	배기가스 배출량
+employee	직원
+enable	활성화하다
+enabled	활성화된
+endpoint	연결 지점
+engine	엔진
+engineer	엔지니어, 기술자
+engineering	기술, 엔지니어링
+english	영어
+entire	전체의
+equivalent	동등한
+error	오류
+especially	특히
+estimate	추정하다
+estimated	추정된
+evaluation	평가
+evening	저녁
+exactly	정확히
+exceed	초과하다
+exceeded	초과된
+exception	예외, 예외사항
+exceptional	예외적인
+exchange	교환, 교체
+exclude	제외하다
+excluding	제외한
+executive	임원, 경영진
+exhaust	배기, 배기가스
+existing	기존의
+expect	예상하다
+expectation	기대
+expected	예상되는
+expense	비용, 지출
+expiration	만료, 유효기간
+expired	만료된
+expiry	만료일
+export	내보내기, 수출
+external	외부의
+factory	공장
+faded	색이 바랜
+fading	색바램
+failed	실패한, 고장난
+failure	실패, 고장
+failuremode	고장 유형
+failures	고장들, 불량
+fallback	대체 수단, 보완 경로
+fan	팬
+fastener	체결부품
+fatigue	피로, 반복하중 손상
+fault	고장, 결함
+faulty	결함이 있는
+feasibility	실현 가능성
+feasible	실현 가능한
+feature	기능, 특징
+features	기능들, 특징
+feedback	피드백, 의견
+few	소수, 적은
+field	현장, 시장
+file	파일
+filter	필터
+filtration	여과
+final	최종의
+finally	최종적으로
+firewall	방화벽
+first	첫 번째
+fix	수정, 고치다
+fixed	수정된
+fixture	고정구, 지그
+flaking	박리, 떨어짐
+fleet	차량 운용 집단
+flow	흐름, 유량
+flowrate	유량
+fluid	유체
+folder	폴더
+follow	따라가다
+followup	후속조치, 추적 관리
+font	글꼴
+forecast	예측
+forward	전달하다, 앞으로
+forwarded	전달된
+fouling	오염, 막힘
+fracture	파단, 골절
+frame	프레임, 차대
+frequency	빈도
+frequent	빈번한
+frequently	자주
+friction	마찰
+fuel	연료
+fully	완전히
+function	기능, 함수
+functional	기능적인
+functionality	기능
+furthermore	더 나아가
+fuse	퓨즈
+future	미래의
+gasket	개스킷, 밀봉 가스켓
+gear	기어
+gearbox	기어박스, 변속기
+general	일반적인
+glass	유리
+global	세계적인
+goal	목표
+grade	등급
+grease	그리스, 윤활유
+handle	손잡이, 핸들
+harness	와이어링 하네스
+hazard	위험 요소
+head	책임자, 머리
+headlamp	전조등
+headlight	전조등
+headquarters	본사
+heat	열, 가열
+heating	가열, 난방
+height	높이
+hence	그러므로
+high	높은
+highlight	강조 표시
+hinge	경첩
+history	이력, 기록
+hold	보류, 유지
+hood	보닛, 후드
+horn	경적, 혼
+hose	호스
+host	호스트
+hostname	호스트 이름
+hot	뜨거운
+hover	마우스를 올려두다
+however	그러나
+http	웹 통신 프로토콜
+https	HTTPS
+humidity	습도
+hydraulic	유압의
+hydraulics	유압
+icon	아이콘
+identification	식별, 확인
+identified	확인된, 식별된
+identify	식별하다
+immediately	즉시
+impact	영향, 충격
+implementation	적용, 실행
+implemented	적용된, 시행된
+import	가져오기, 수입
+impossible	불가능한
+improved	개선된
+improvement	개선
+inactive	비활성 상태의
+incidence	발생률, 발생 건수
+incident	사건, 장애
+include	포함하다
+included	포함된
+including	포함하여
+incomplete	미완료
+increase	증가, 늘리다
+increased	증가한
+index	지수, 색인
+indicator	지표, 표시기
+information	정보, 자료
+initial	초기, 최초의
+input	입력, 투입
+inspected	검사한
+inspection	검사, 점검
+install	설치하다
+installation	설치, 장착
+installed	설치된
+instead	대신에
+instruction	지시, 설명
+instructions	지침, 사용법
+instrument	계기, 장비
+instrumentation	계측, 계기류
+insufficient	불충분한
+insulated	절연된
+insulation	절연, 단열
+integrated	통합된
+intercooler	인터쿨러
+interference	간섭
+interfering	간섭하는
+interim	임시의, 중간의
+internal	내부의
+international	국제적인
+internet	인터넷
+invalid	유효하지 않은
+investigate	조사하다
+investigation	조사
+irrelevant	관련 없는
+issue	문제, 이슈
+issues	문제들, 이슈
+italic	기울임꼴
+jig	지그
+joint	이음부, 조인트
+just	단지, 바로
+keyboard	키보드
+kindly	정중히, 친절히
+knowledge	지식
+korean	한국어
+kpi	핵심성과지표
+label	표시, 라벨
+lamp	램프, 등
+language	언어
+last	마지막
+latch	래치, 걸쇠
+late	늦은, 지연된
+latency	지연시간
+latest	최신의
+launch	출시, 착수
+leader	리더, 책임자
+leak	누출, 누수
+leakage	누수, 누유, 누설
+leaking	누출 중인
+leakproof	누출 방지의
+learning	학습
+length	길이
+less	더 적은
+level	수준, 단계
+lighting	조명
+likelihood	가능성, 발생 확률
+likely	가능성이 높은
+limit	한계, 제한
+limitation	제한, 한계
+limits	제한값, 허용 범위
+list	목록, 리스트
+load	불러오기, 적재
+loaded	불러온
+local	현지의, 지역의
+location	위치
+lock	잠금장치
+log	기록, 로그
+logging	기록, 로그 저장
+logic	로직, 논리
+logistics	물류
+longterm	장기
+lookup	조회
+loose	풀린, 느슨한
+loosen	풀리다, 느슨하게 하다
+looseness	헐거움, 유격
+loss	손실
+lot	로트, 생산 단위
+low	낮은
+lower	하위, 아래쪽
+lubricant	윤활유
+lubrication	윤활
+main	주요한, 주된
+mainly	주로
+maintain	유지하다
+maintained	유지된
+maintenance	정비, 유지보수
+major	주요한, 중대한
+malfunction	작동 불량
+management	경영, 관리
+manager	관리자, 팀장
+mandatory	의무적인, 필수의
+manual	설명서, 수동의
+manufacture	제조하다
+manufacturing	제조
+many	많은
+map	지도, 대응 관계
+mapping	맵핑
+mark	표시, 흔적
+market	시장
+mass	질량
+massproduction	양산
+material	재료, 자재
+materials	자재, 재료
+maximum	최대
+mean	평균, 의미하다
+meaning	의미, 뜻
+meanwhile	한편, 그동안
+measure	측정하다, 대책
+measured	측정된
+measurement	측정
+median	중앙값
+medium	중간, 매체
+meeting	회의
+menu	메뉴
+meter	계기, 미터
+metric	측정 지표
+milestone	주요 일정, 이정표
+minimum	최소
+minor	경미한, 부차적인
+minutes	회의록, 분
+mirror	거울
+misalignment	정렬 불량
+mixer	믹서, 혼합차
+model	모델, 차종
+module	모듈
+moisture	수분
+mold	금형, 틀
+monitor	모니터링하다
+monitoring	모니터링, 감시
+month	월
+monthly	월간의
+more	더 많은
+moreover	게다가
+morning	아침, 오전
+most	대부분
+mostly	대부분
+mould	금형, 틀
+mount	장착하다, 마운트
+mounting	장착, 고정
+mouse	마우스
+multiple	여러 개의
+nearly	거의
+necessary	필요한
+need	필요하다
+needed	필요한
+neither	어느 쪽도 아닌
+network	네트워크
+never	절대, 결코
+nevertheless	그럼에도 불구하고
+new	새로운
+next	다음
+noise	소음
+noncompliance	규정 미준수
+nonconformity	부적합
+none	없음
+normal	정상적인
+normally	일반적으로
+notice	공지, 통지
+notification	공지, 알림
+number	번호, 숫자
+nut	너트
+objective	목적, 목표
+obstruction	장애물, 막힘
+occurrence	발생, 출현
+officer	임원, 담당자
+offline	오프라인
+often	자주
+oil	오일, 기름
+old	오래된, 구형의
+once	일단, 한 번
+ongoing	진행 중인
+online	온라인
+only	오직
+open	열림, 개방
+operating	작동 중인, 운행 중인
+operation	운영, 작동
+operator	작업자, 운전자
+option	선택지
+optional	선택적인
+order	순서, 주문
+organization	조직
+organizational	조직의
+originally	원래
+otherwise	그렇지 않으면
+outage	서비스 중단
+outcome	결과, 성과
+outlier	이상치
+output	산출물, 출력
+outstanding	미결, 뛰어난
+overdue	기한 초과
+owner	담당자, 소유자
+ownership	주인의식, 소유권
+oxidation	산화
+paint	도료, 칠하다
+painting	도장
+panel	패널
+parameter	매개변수
+parameterize	매개변수화하다
+parameters	매개변수, 파라미터
+part	부품, 부분
+partial	부분적인
+partially	부분적으로
+participant	참석자
+particle	입자
+particularly	특히
+particulate	미립자
+parts	부품
+past	과거의
+pastdue	기한이 지난
+paste	붙여넣기
+patch	패치, 수정
+patched	패치된
+pause	일시정지
+pedal	페달
+peeling	박리
+pending	대기 중, 보류
+percent	퍼센트
+percentage	백분율
+performance	성능, 실적
+period	기간
+permanent	영구적인
+permission	권한
+phase	단계
+phrase	구문, 어구
+pilot	시험, 시범
+pipe	파이프
+piping	배관
+piston	피스톤
+plan	계획
+planning	계획 수립
+plant	공장, 설비
+plastic	플라스틱
+plating	도금
+please	부탁드립니다
+pneumatic	공압의
+pointer	마우스 포인터
+policy	정책
+pollution	오염
+position	위치
+possible	가능한
+postpone	연기하다
+postponed	연기된
+potential	잠재적인, 가능성
+power	출력, 전력
+powertrain	동력계, 파워트레인
+precision	정밀도
+predict	예측하다
+prediction	예측
+preproduction	양산 전 생산
+presentation	발표, 프레젠테이션
+presently	현재
+pressure	압력
+pressuredrop	압력 강하
+prevent	방지하다
+prevention	예방, 방지
+preventive	예방적인
+previous	이전
+previously	이전에
+price	가격
+primarily	주로
+primary	주요한, 일차적인
+priority	우선순위
+privacy	개인정보 보호
+private	개인적인, 사적인
+privilege	권한
+probability	발생 확률
+problem	문제
+procedure	절차
+process	과정, 공정
+procurement	조달, 구매
+production	생산
+profit	이익
+program	프로그램
+progress	진행, 진척
+project	프로젝트, 과제
+projected	예상된
+projection	추정, 전망
+promptly	신속히
+propeller	프로펠러
+proposal	제안서, 제안
+propose	제안하다
+prototype	시제품
+proxy	프록시, 중계 서버
+public	공개의, 공공의
+pump	펌프
+purchase	구매
+purchasing	구매
+quality	품질
+quantity	수량
+quarter	분기
+query	조회, 질의
+quickly	빠르게
+radiator	라디에이터
+radius	반경
+range	범위
+rank	순위
+ranking	순위
+rare	드문
+rate	비율, 율
+rated	등급이 매겨진
+rather	오히려
+rating	등급, 평가
+ratio	비율
+rattle	달그락 소음
+raw	원시의, 원재료
+reasonable	합리적인
+recall	리콜, 시정조치
+receive	받다
+received	수신한
+recently	최근에
+recipient	수신인
+recognition	인식
+recognize	인식하다
+recognized	인식된
+recommend	추천하다
+recommendation	권고, 추천
+record	기록, 이력
+recording	기록, 녹화
+recover	복구하다
+recovery	복구
+reduced	감소된
+reduction	감소, 절감
+redundancy	중복, 이중화
+redundant	이중화된, 불필요한
+reference	참고, 참조
+regarding	관하여, 관련하여
+regardless	관계없이
+regards	안부, 경의를 표하며
+regular	정기적인, 규칙적인
+regulation	규정, 법규
+rejected	반려된, 거절된
+related	관련된
+relative	상대적인
+release	출고, 출시, 해제
+released	출시된, 해제된
+relevant	관련 있는
+reliability	신뢰성
+reliable	신뢰할 수 있는
+remaining	잔여
+remains	남는다
+removal	제거
+remove	제거하다
+removed	제거된
+repair	수리, 정비
+repairing	수리, 정비 중
+replaced	교체된
+replacement	교체
+reply	회신, 답장
+report	보고서, 보고
+reporting	보고, 보고체계
+request	요청
+requested	요청된
+require	요구하다
+required	필수의
+requirement	요구사항
+requirements	요구사항들
+reschedule	일정을 변경하다
+reset	초기화
+residual	잔여의
+residue	잔류물
+resilience	회복력, 탄력성
+resistance	저항
+resistor	저항기
+resize	크기 조절
+resolved	해결된
+resource	자원
+resources	자원들
+respectfully	정중히
+response	응답, 회신
+responsibility	책임
+responsible	책임이 있는
+restart	다시 시작
+restore	복원
+restorepoint	복원 지점
+restricted	제한된
+restriction	제한
+result	결과, 실적
+resume	재개
+retain	유지하다
+retrofit	기존 차량 개조, 개선품 적용
+retry	재시도
+revenue	매출, 수익
+review	검토, 리뷰
+reviewed	검토 완료된
+reviewer	검토자
+revised	개정된
+revision	개정, 수정
+rework	재작업
+rigidity	강성, 견고성
+risk	위험, 리스크
+robustness	강건성, 견고함
+rollout	출시, 단계적 적용
+roof	지붕, 루프
+root	근본적인
+rotation	회전
+roughly	대략
+rpm	분당 회전수
+rubber	고무
+running	실행 중
+rust	녹, 부식
+safety	안전
+sales	판매
+sample	샘플, 표본
+sampling	표본 추출
+save	저장
+saved	저장된
+schedule	일정, 계획
+scheduled	예정된
+score	점수, 점수화
+scratch	긁힘, 스크래치
+screen	화면
+screenshot	화면 캡처
+screw	나사
+scroll	스크롤
+seal	씰, 밀봉
+sealant	실링재, 밀봉제
+sealing	밀봉, 실링
+seat	좌석
+seatbelt	안전벨트
+second	두 번째
+secondary	부차적인
+secure	안전한, 보안된
+security	보안, 안전
+seldom	드물게
+select	선택하다
+selected	선택된
+selling	판매
+seminar	세미나
+sender	발신인
+sensor	센서, 감지기
+sensors	센서들
+sentence	문장
+separate	별도의, 분리된
+sequence	순서
+serial	일련번호, 연속된
+server	서버
+service	서비스, 정비
+session	회의, 세션
+setting	설정
+settings	설정들
+several	여러
+severe	심각한
+severity	심각도, 중대성
+shaft	축, 샤프트
+shifting	전환, 이동
+shipment	출하, 선적
+shipped	출하된
+shock	충격
+short	단락, 짧은
+shortage	부족
+shortterm	단기
+shutdown	종료
+signal	신호
+significant	중대한, 상당한
+similar	유사한
+since	이래로, ~때문에
+sincerely	진심으로
+single	단일의
+size	크기
+skill	기술, 숙련도
+slide	슬라이드
+slides	슬라이드들
+slowly	느리게
+software	소프트웨어, 프로그램
+solution	해결책, 해결방안
+solve	해결하다
+some	일부
+sometimes	가끔
+somewhat	다소
+sound	소리, 음향
+sourcing	조달, 구매처 선정
+spacing	간격
+spare	예비의, 교체용
+speaker	발표자
+special	특별한
+specific	구체적인, 특정한
+specifically	구체적으로
+specification	규격, 사양
+specifications	사양, 규격
+speed	속도
+spring	스프링
+squeak	삐걱 소음
+ssl	SSL 암호화
+stability	안정성
+stable	안정적인
+staff	직원, 스태프
+stage	단계
+standard	표준, 기준
+standarddeviation	표준편차
+start	시작
+status	현황, 상태
+steel	강철
+step	단계, 조치
+steps	단계들
+stiffness	강성
+still	여전히
+stop	중지
+strain	변형률
+strategic	전략적인
+strategy	전략
+strength	강도
+stress	응력, 스트레스
+striker	스트라이커, 도어 걸쇠 받이
+subject	제목, 주제
+submission	제출, 제출자료
+submit	제출하다
+submitted	제출된
+subsequently	이후에
+success	성공
+successful	성공적인
+sufficient	충분한
+suggest	제안하다
+suggestion	제안
+summary	요약, 개요
+supplemental	보충의, 추가의
+supplementary	보충의
+supplier	공급업체, 협력사
+support	지원
+supportive	지원하는
+suspension	현가장치
+system	시스템, 체계
+tacho	회전속도계, 운행기록계
+tachograph	운행기록계, 디지털 운행기록장치(DTG)
+tachometer	회전속도계, RPM 계기
+tactic	전술, 실무 방법
+taillamp	후미등
+target	목표, 대상
+team	팀
+technical	기술적인
+temperature	온도
+temporary	임시의
+term	용어, 조건, 기간
+terminal	단자
+terms	조건들, 용어들
+tertiary	삼차적인
+test	시험, 테스트
+thank	감사하다
+thanks	감사합니다
+therefore	따라서
+thickness	두께
+third	세 번째
+thread	나사산
+threshold	기준값, 임계치
+through	통해, 관통하여
+throughout	전체에 걸쳐
+thus	따라서
+tight	꽉 조인, 빡빡한
+tightening	조임, 체결
+timeout	시간 초과
+today	오늘
+tomorrow	내일
+tool	공구, 도구
+tooling	금형·치공구
+tooltip	툴팁, 말풍선 안내
+torque	토크, 회전력
+trace	추적하다
+traceability	추적성
+track	추적하다
+tracked	추적된
+tracker	추적표
+tracking	추적
+tractor	트랙터
+trailer	트레일러
+training	교육, 훈련
+translate	번역하다
+translation	번역
+transmission	변속기
+transport	운송, 수송
+transportation	운송
+trend	추세
+trim	내장재, 트림
+truck	트럭, 화물차
+tube	튜브, 관
+turbo	터보차저
+turbocharger	터보차저
+unavailable	이용할 수 없는
+uncertain	불확실한
+unclear	불명확한
+under	아래에, 미만
+underline	밑줄
+understand	이해하다
+understanding	이해
+unique	고유한
+unit	장치, 단위
+unknown	알 수 없는
+unless	~하지 않는 한
+unlikely	가능성이 낮은
+unlock	잠금 해제
+unsafe	불안전한
+unstable	불안정한
+unsuccessful	실패한
+until	~할 때까지
+update	업데이트, 갱신
+updated	갱신된, 업데이트된
+updating	갱신, 업데이트 진행
+upgrade	개선, 업그레이드
+upgraded	개선된, 업그레이드된
+upload	업로드
+upper	상위, 위쪽
+urgent	긴급한
+uri	리소스 주소
+url	인터넷 주소
+user	사용자
+users	사용자들
+usually	일반적으로
+valid	유효한
+validation	유효성 확인, 검증
+validity	유효성
+value	가치, 값
+values	값들, 가치관
+valve	밸브
+variance	분산, 변동
+variation	변동, 편차
+various	다양한
+vehicle	차량
+velocity	속도
+vendor	공급업체
+verification	검증, 확인
+verified	확인된, 검증된
+verify	검증하다
+version	버전, 판
+vibration	진동
+voltage	전압
+volume	부피, 용량
+vulnerability	취약점
+vulnerable	취약한
+warning	경고
+warranty	품질보증, 보증기간
+washer	와셔
+washing	세척
+water	물
+waterproof	방수
+waterproofing	방수 처리
+waterpump	워터펌프
+wear	마모, 닳음
+weatherstrip	웨더스트립, 문틈 고무
+week	주
+weekly	주간의
+weight	무게, 중량
+weld	용접하다
+welding	용접
+whereas	반면에
+while	~하는 동안
+whole	전체
+width	너비
+window	창, 윈도우
+windscreen	앞유리
+windshield	앞유리
+wire	전선, 와이어
+wiring	배선
+within	이내에, 내부에
+without	없이, 외부에
+word	단어
+workflow	업무흐름
+workforce	인력
+workload	업무량
+workshop	워크숍, 작업장
+worsening	악화
+year	연도, 해
+yearly	연간의
+yesterday	어제
+yet	아직, 그럼에도
+zoom	확대, 축소
