@@ -1,14 +1,21 @@
-# 231Dictionary v1.0 Build and Verification
+# 231Dictionary v1.1 — Build / Verification
 
-Based on 231Dictionary v3.3.1 source, preserving its Gemini, selected-text, glossary and browser-PDF behavior.
+Windows 10/11 x64 GUI program, built from the v1.0 English/KakaoTalk-exclusion codebase. New functionality: persistent global shortcut to toggle the existing **Enable / Disable Word Tooltips** action.
 
-- English local user interface, tray menu, installer dialogs, status, version information, key prompt and error messages.
-- Developer: Lee Sang Il (previously Korean display). Product: 231Dictionary v1.0.0.0.
-- New executable-name-based KakaoTalk exclusion, always active independently of the optional browser exclusion setting. Checks both foreground and pointer windows. Checks are repeated when asynchronous translation results arrive and when popups are about to be displayed.
-- Browser PDF remains allowed; ordinary web page suppression remains configurable.
-- User's existing DPAPI key and browser settings paths preserved.
-- The original third-party license notice is retained in the distribution but not placed on the About screen.
+## Build prerequisites
 
-Run `go test ./...`, `go test -race ./...`, `go vet ./...`; cross-build with `GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags='-s -w -H windowsgui' -o 231Dictionary.exe .`; attach PE VERSIONINFO via `add_pe_version.py`.
+Go 1.23+ and Python 3. The Go project uses only Go standard-library dependencies.
 
-Tests can verify classification, source integration, build, and packages. Actual Windows application suppression and network translation require live verification on the target machine.
+```bash
+go test ./...
+go test -race ./...
+go vet ./...
+GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags='-s -w -H windowsgui' -o 231Dictionary_Installer_v1.1.exe .
+python3 add_pe_version.py 231Dictionary_Installer_v1.1.exe
+```
+
+`RegisterHotKey` (Win32) registers a non-repeating hotkey with the app's hidden main window; `WM_HOTKEY` and the existing tray command invoke the same toggle function. A separate native Win32 settings window accepts combinations such as `Ctrl+Alt+T` and `Ctrl+Shift+F5` and saves them to `%LOCALAPPDATA%\231Dictionary\toggle_shortcut_v1.txt`. Shortcut changes are only persisted after a successful registration. Invalid or occupied shortcuts do not displace the existing shortcut. Close/uninstall unregisters the global hotkey; the user can also remove it via the tray menu.
+
+This build retains translation, glossary, browser-PDF, KakaoTalk-exclusion, Gemini encryption, and English-language UI. The About UI does not show "MIT"; applicable third-party notices remain with the software.
+
+Cross-compilation and unit tests alone do **not** establish that the full tray/dialog behavior or Gemini requests work on a real Windows PC. Test the menu checkbox, shortcut persistence after restart, conflicts, and PowerPoint/PDF behavior on a target computer before enterprise deployment.

@@ -249,6 +249,7 @@ type workerAnswer struct {
 	Error     string  `json:"error"`
 }
 type hoverResult struct {
+	Generation             uint64
 	P                      point
 	Word, Meaning, Backend string
 	TranslationSource      string
@@ -402,7 +403,7 @@ func addShortcut() error {
 	return cmd.Run()
 }
 func installSelf() {
-	if callMessage("Install or update 231Dictionary v1.0?\n\nHover over an English word to view its meaning.\nDrag-select English or Korean sentences for Gemini translation, with source line breaks preserved.\nOrdinary browser web pages are excluded, but PDFs in browsers are supported.\nKakaoTalk is always excluded.\nYour saved Gemini API key and preferences will be retained.\n\nCreated by Lee Sang Il. Free for personal and business use.", MB_YESNO|MB_ICONQUESTION) != IDYES {
+	if callMessage("Install or update 231Dictionary v1.1?\n\nHover over an English word to view its meaning.\nDrag-select English or Korean sentences for Gemini translation, with source line breaks preserved.\nOrdinary browser web pages are excluded, but PDFs in browsers are supported.\nKakaoTalk is always excluded.\nYour saved Gemini API key and preferences will be retained.\n\nCreated by Lee Sang Il. Free for personal and business use.", MB_YESNO|MB_ICONQUESTION) != IDYES {
 		return
 	}
 	exe, err := os.Executable()
@@ -507,7 +508,7 @@ func installSelf() {
 	if !geminiKeyRegistered() {
 		keyNote = "Gemini API key not configured. Use Set / Change Gemini API Key in the system tray."
 	}
-	callMessage("231Dictionary v1.0 installed successfully!\n\nSelected sentences are translated in both directions (English/Korean), preserving source line breaks.\nKey terms and expressions appear below the translation.\nBrowser web pages are excluded by default, browser PDFs are permitted, and KakaoTalk is always excluded.\n"+keyNote+"\n\nCreated by Lee Sang Il. Free for personal and business use.", MB_ICONINFORMATION)
+	callMessage("231Dictionary v1.1 installed successfully!\n\nSelected sentences are translated in both directions (English/Korean), preserving source line breaks.\nKey terms and expressions appear below the translation.\nBrowser web pages are excluded by default, browser PDFs are permitted, and KakaoTalk is always excluded.\n"+keyNote+"\n\nCreated by Lee Sang Il. Free for personal and business use.", MB_ICONINFORMATION)
 }
 func uninstallSelf() {
 	if callMessage("Uninstall 231Dictionary?\n\nThis also removes the startup entry and the Start Menu shortcut.", MB_YESNO|MB_ICONQUESTION) != IDYES {
@@ -594,6 +595,10 @@ func menu() {
 		flag |= MF_CHECKED
 	}
 	pAppendMenu.Call(m, flag, CMD_TOGGLE, uintptr(unsafe.Pointer(ptr("Enable / Disable Word Tooltips"))))
+	pAppendMenu.Call(m, MF_STRING, CMD_SHORTCUT_CONFIG, uintptr(unsafe.Pointer(ptr(shortcutMenuLabel()))))
+	if currentShortcut.Display != "" {
+		pAppendMenu.Call(m, MF_STRING, CMD_SHORTCUT_CLEAR, uintptr(unsafe.Pointer(ptr("Remove Toggle Shortcut"))))
+	}
 	flag = MF_STRING
 	if startupEnabled() {
 		flag |= MF_CHECKED
@@ -622,9 +627,13 @@ func menu() {
 	pDestroyMenu.Call(m)
 	switch cmd {
 	case CMD_TOGGLE:
-		active = !active
-		sentenceShown = false
-		hide231Dictionary()
+		toggleTooltipsFromMenuOrShortcut()
+	case CMD_SHORTCUT_CONFIG:
+		openShortcutDialog()
+	case CMD_SHORTCUT_CLEAR:
+		if err := clearToggleShortcut(); err != nil {
+			callMessage("Could not remove shortcut: "+err.Error(), MB_ICONWARNING)
+		}
 	case CMD_STARTUP:
 		configureStartup(!startupEnabled())
 	case CMD_INFO:
@@ -684,12 +693,14 @@ func menu() {
 	case CMD_UNINSTALL:
 		uninstallSelf()
 	case CMD_EXIT:
+		unhookToggleShortcut()
+		pUnregisterHotKey.Call(mainHWND, 1)
 		cleanupTray()
 		pPostQuit.Call(0)
 	}
 }
 func showAbout() {
-	callMessage("231Dictionary v1.0\n\nCreated by Lee Sang Il (independent developer)\nFree for personal and business use\n\nFeatures:\n- Hover over English words for Gemini-powered word meanings.\n- Drag-select English/Korean sentences for two-way translation.\n- Preserve source line breaks and show key terms.\n- Exclude ordinary web pages (allow PDFs in browsers).\n- Always exclude KakaoTalk, including its chat windows.\n\nYour Gemini API key is encrypted for your Windows user account.\nSelected text may be sent to Google Gemini. Do not select confidential information.\n\nThis is not official TDM software.", MB_ICONINFORMATION)
+	callMessage("231Dictionary v1.1\n\nCreated by Lee Sang Il (independent developer)\nFree for personal and business use\n\nFeatures:\n- Hover over English words for Gemini-powered word meanings.\n- Drag-select English/Korean sentences for two-way translation.\n- Preserve source line breaks and show key terms.\n- Exclude ordinary web pages (allow PDFs in browsers).\n- Always exclude KakaoTalk, including its chat windows.\n\nYour Gemini API key is encrypted for your Windows user account.\nSelected text may be sent to Google Gemini. Do not select confidential information.\n\nThis is not official TDM software.", MB_ICONINFORMATION)
 }
 func showInfo() {
 	tooltipState := "On"
@@ -708,10 +719,20 @@ func showInfo() {
 	if !browserExclusion {
 		browserState = "Off (browser pages enabled)"
 	}
-	callMessage("231Dictionary v1.0\n\nWord tooltips: "+tooltipState+"\nGemini API key: "+keyState+"\nOnline sentence translation: "+onlineState+"\nBrowser exclusion: "+browserState+"\nKakaoTalk exclusion: Always on\n\n1. Hover over an English word for its meaning.\n2. Drag-select English or Korean text for translation with key terms.\n3. In PowerPoint, select text inside a text box; in PDF, use the text-selection tool.\n4. Your API key is verified when it is saved.\n\nCreated by Lee Sang Il", MB_ICONINFORMATION)
+	shortcutState := "Not configured"
+	if currentShortcut.Display != "" {
+		shortcutState = currentShortcut.Display
+		if registeredShortcutID == 0 {
+			shortcutState += " (unavailable; change shortcut)"
+		}
+	}
+	callMessage("231Dictionary v1.1\n\nWord tooltips: "+tooltipState+"\nToggle shortcut: "+shortcutState+"\nGemini API key: "+keyState+"\nOnline sentence translation: "+onlineState+"\nBrowser exclusion: "+browserState+"\nKakaoTalk exclusion: Always on\n\n1. Hover over an English word for its meaning.\n2. Drag-select English or Korean text for translation with key terms.\n3. In PowerPoint, select text inside a text box; in PDF, use the text-selection tool.\n4. Your API key is verified when it is saved.\n\nCreated by Lee Sang Il", MB_ICONINFORMATION)
 }
 
 func windowProc(hwnd, message, wp, lp uintptr) uintptr {
+	if result, handled := handleShortcutWindowMessage(hwnd, message, wp, lp); handled {
+		return result
+	}
 	if hwnd == tipHWND && message == WM_PAINT {
 		drawTip(hwnd)
 		return 0
@@ -741,7 +762,9 @@ func windowProc(hwnd, message, wp, lp uintptr) uintptr {
 			handleSentenceTranslation()
 			return 0
 		case WM_HOTKEY:
-			if wp == 1 {
+			if registeredShortcutID != 0 && wp == registeredShortcutID {
+				toggleTooltipsFromMenuOrShortcut()
+			} else if wp == 1 {
 				manualDebug = true
 				lastCheckAt = time.Time{}
 				lastMoved = time.Now().Add(-HOVER_DELAY)
@@ -762,6 +785,7 @@ func windowProc(hwnd, message, wp, lp uintptr) uintptr {
 			}
 			return 0
 		case WM_DESTROY:
+			unhookToggleShortcut()
 			pUnregisterHotKey.Call(mainHWND, 1)
 			cleanupTray()
 			pPostQuit.Call(0)
@@ -910,18 +934,24 @@ func onTimer() {
 	lastCheckAt = now
 	working = true
 	hide231Dictionary()
-	go func(pos point) {
+	generation := hoverGeneration
+	go func(pos point, generation uint64) {
 		r := analyze(pos)
+		r.Generation = generation
 		uiMu.Lock()
 		result = r
 		uiMu.Unlock()
 		pPostMessage.Call(mainHWND, WM_RESULT, 0, 0)
-	}(p)
+	}(p, generation)
 }
 func handleResult() {
 	working = false
 	uiMu.Lock()
 	r := result
+	if r.Generation != hoverGeneration {
+		uiMu.Unlock()
+		return // Ignore the result of a request started before the hotkey toggle.
+	}
 	hoverGeneration++
 	requestID := hoverGeneration
 	if r.Err != "" {
@@ -1366,7 +1396,7 @@ func main() {
 		return
 	}
 	if len(os.Args) > 1 && os.Args[1] == "-version" {
-		callMessage("231Dictionary v1.0\nCreated by Lee Sang Il\nFree for personal and business use", MB_ICONINFORMATION)
+		callMessage("231Dictionary v1.1\nCreated by Lee Sang Il\nFree for personal and business use", MB_ICONINFORMATION)
 		return
 	}
 	if len(os.Args) > 1 && os.Args[1] == "-uninstall" {
@@ -1399,11 +1429,12 @@ func main() {
 		callMessage(err.Error(), MB_ICONWARNING)
 		return
 	}
+	loadToggleShortcut() // Register the saved shortcut only after the tray window exists.
 	lastMoved = time.Now()
 	prepareDictionary()
 	// Installer checks this only after makeWindow() has created the tray UI.
-	_ = os.WriteFile(readyPath(), []byte(fmt.Sprintf("v1.0 %d %s", os.Getpid(), time.Now().Format(time.RFC3339Nano))), 0644)
-	appendDiagnostic(fmt.Sprintf("v1.0 initialized; offline dictionary=%d; OCR worker starting", len(builtinDict)))
+	_ = os.WriteFile(readyPath(), []byte(fmt.Sprintf("v1.1 %d %s", os.Getpid(), time.Now().Format(time.RFC3339Nano))), 0644)
+	appendDiagnostic(fmt.Sprintf("v1.1 initialized; offline dictionary=%d; OCR worker starting", len(builtinDict)))
 	if !geminiKeyRegistered() {
 		pPostMessage.Call(mainHWND, WM_GEMINI_KEY_PROMPT, 0, 0)
 	}

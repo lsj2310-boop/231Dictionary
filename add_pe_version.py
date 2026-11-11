@@ -30,7 +30,7 @@ def text_entry(key, val):
 
 
 def version_data():
-    major, minor, patch, build = 1, 0, 0, 0
+    major, minor, patch, build = 1, 1, 0, 0
     ffi = struct.pack('<13I', 0xFEEF04BD, 0x00010000,
                       major<<16 | minor, patch<<16 | build,
                       major<<16 | minor, patch<<16 | build,
@@ -38,11 +38,11 @@ def version_data():
     entries = [
         text_entry('CompanyName', 'Lee Sang Il'),
         text_entry('FileDescription', 'English word tooltips and Gemini Korean-English sentence translation | Lee Sang Il | Free use'),
-        text_entry('FileVersion', '1.0.0.0'),
+        text_entry('FileVersion', '1.1.0.0'),
         text_entry('InternalName', '231Dictionary'),
         text_entry('OriginalFilename', '231Dictionary.exe'),
         text_entry('ProductName', '231Dictionary'),
-        text_entry('ProductVersion', '1.0.0.0'),
+        text_entry('ProductVersion', '1.1.0.0'),
         text_entry('LegalCopyright', 'Copyright © 2026 Lee Sang Il. Free personal and business use.'),
         text_entry('Comments', 'Created by Lee Sang Il. Free for personal and business use. Not official TDM software.'),
     ]
