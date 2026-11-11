@@ -1,44 +1,44 @@
 # 231Dictionary v1.1 — Windows Translator
 
-Created by **Lee Sang Il** · Free for personal and business use.
+**Created by Lee Sang Il** · Free for personal and business use.
 
-231Dictionary is a small Windows 10/11 (64-bit) tray utility that displays Korean-English translations and key expressions in PowerPoint, selectable-text PDFs and other supported documents. Its main translation service is Google Gemini, requiring a user-supplied API key and permission for online translation.
-
-## What's new in v1.1
-
-**Customizable global toggle shortcut:** Use the 231Dictionary tray icon's context menu to choose **Set / Change Toggle Shortcut...**. Enter a key combination, e.g. `Ctrl+Alt+T`, and click **Save**. Pressing it in PowerPoint, a PDF viewer, or another application toggles the check mark of **Enable / Disable Word Tooltips**. The same toggle is available in the menu. The shortcut is saved for future launches.
-
-- Accepted combinations: `Ctrl+Alt+` or `Ctrl+Shift+` plus **A–Z, 0–9, or F1–F11**. Example: `Ctrl+Shift+F5`.
-- Repeated key presses do not cause rapid toggling while a key is held (`MOD_NOREPEAT`).
-- If another app has registered a shortcut, the program warns you and preserves the previous shortcut. Choose another combination.
-- **Remove Toggle Shortcut** clears the current shortcut. The toggle itself remains available in the tray menu.
-- Changing the enabled state also follows the existing app behavior: both word tooltips and drag-selection translation are paused when disabled.
-- The application starts without a global shortcut until you register one.
+231Dictionary is a Windows 10/11 (64-bit) translation utility for English and Korean text. It helps users read PowerPoint presentations, selectable-text PDF files, and other supported documents without repeatedly copying text into a separate translation site.
 
 ## Translation features
 
-- English word tooltip: move the mouse over a word to view its meaning, when enabled and recognized.
-- Drag-select English sentences to translate to Korean and view important terms underneath.
-- Drag-select Korean sentences to translate to English, with an English-terms glossary in Korean.
-- Maintain the source's line breaks where the document exposes selectable text.
-- Exclude KakaoTalk at all times. Ordinary browser web pages may be excluded via **Disable on Web Pages (Allow PDFs)**. Browser PDFs are allowed when detected.
-- Reuse the Gemini API key encrypted for your Windows user account. API and online-translation settings are not changed by the hotkey update.
+- **English → Korean:** Select an English sentence with the mouse to translate it into Korean and see important English terms and expressions explained underneath.
+- **Korean → English:** Select a Korean sentence to translate it into English, with key English expressions explained in Korean.
+- **Word meanings:** When word recognition is supported, moving the mouse over an English word can show a small Korean meaning tooltip.
+- **Line breaks:** Preserve source line breaks where the selected text provides them.
+- **App exclusions:** Always exclude KakaoTalk. Regular browser web pages may be excluded via **Disable on Web Pages (Allow PDFs)**, while detectable browser PDF documents remain supported.
+- **Gemini integration:** A personal Google Gemini API key is required for online translation and is stored encrypted for the current Windows user.
 
-## Install / update
+## Installation and use
 
-1. Exit the running 231Dictionary from its tray menu.
-2. Run **231Dictionary_Installer_v1.1.exe** and confirm installation.
-3. Right-click the 231Dictionary notification-area icon.
-4. Select **Set / Change Toggle Shortcut...**, type `Ctrl+Alt+T`, and choose **Save**.
-5. Press `Ctrl+Alt+T` once to disable, and again to re-enable. Reopen the tray menu to inspect the check mark.
-6. If needed, register a different combination or choose **Remove Toggle Shortcut**.
+1. Visit the [v1.1 Releases page](https://github.com/lsj2310-boop/231Dictionary/releases/tag/v1.1).
+2. Download `231Dictionary_Installer_v1.1.exe`, or download `231Dictionary_v1.1_Installer.zip` and extract its contents.
+3. Exit any running 231Dictionary instance from the Windows notification area before installing the update.
+4. Run the installer and start 231Dictionary.
+5. Right-click the notification-area icon. Choose **Set / Change Gemini API Key** to register your own API key from [Google AI Studio](https://aistudio.google.com/api-keys).
+6. Ensure **Allow Online Translation** is enabled and select English or Korean text in a supported document.
 
-Existing Gemini keys, startup settings, and browser-PDF preferences are left intact. The shortcut setting is stored in `%LOCALAPPDATA%\231Dictionary\toggle_shortcut_v1.txt`.
+Existing Gemini API credentials and settings are preserved when updating from earlier versions.
 
-## Security and limitations
+## Supported environments and limitations
 
-Selected text may be transmitted to Google Gemini. Do not select confidential or personal data whose external disclosure is prohibited. Comply with company security and software installation policies. ZIP packaging does not guarantee that Windows SmartScreen will stop warning about unsigned executables.
+- Windows 10/11 (64-bit).
+- Text recognition depends on the document viewer and whether the text can be selected or exposed through accessibility interfaces.
+- Translation needs an internet connection and access to the Google Gemini API. Google may apply quotas or charges depending on the model and account.
+- Some PDF viewers, presentations, or network environments may limit functionality.
 
-This package was cross-compiled and unit-tested, but the installer, global shortcut registration, PowerPoint, PDF behavior, and Gemini API access were **not** directly exercised on a real Windows computer in this environment. See the verification report for scope and limitations.
+## Security and licensing
 
-The 231Dictionary About screen does not claim the MIT license; applicable third-party license notices are preserved separately as required by their terms.
+Selected text may be sent to Google Gemini for translation. Do not send confidential, personal, or restricted business information without authorization. Follow your organization's software installation and data handling policies.
+
+The installer is not digitally code-signed; downloading it in a ZIP archive does **not** guarantee Windows SmartScreen warnings will disappear.
+
+See `LICENSE` for the application's distribution terms and `LICENSE_MIT_MouseTooltipTranslator.txt` for third-party attribution. The About screen does not claim that the application itself is distributed under the MIT license.
+
+## Building from source
+
+See [BUILD.md](BUILD.md) for Windows build instructions.
