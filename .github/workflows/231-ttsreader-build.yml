@@ -1,0 +1,39 @@
+name: Build 231 TTSReader APK
+on:
+  push:
+    branches:
+      - 231-ttsreader-build
+    paths:
+      - 'ttsreader_build/**'
+      - '.github/workflows/231-ttsreader-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Expand independent Android app sources
+        run: |
+          base64 --decode ttsreader_build/source.zip.base64 > /tmp/ttsreader-source.zip
+          unzip -o -q /tmp/ttsreader-source.zip -d .
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK
+        run: sdkmanager --install 'platforms;android-35' 'build-tools;35.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build installation APK
+        run: gradle --no-daemon --stacktrace :app:assembleDebug
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: 231-TTSReader-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: warn
