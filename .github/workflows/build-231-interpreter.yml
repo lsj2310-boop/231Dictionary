@@ -19,7 +19,10 @@ jobs:
         with:
           gradle-version: '8.10.2'
       - name: Install Android SDK
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+        run: |
+          SDKMGR="$(find /usr/local/lib/android/sdk/cmdline-tools -name sdkmanager -type f | sort -V | tail -n 1)"
+          echo "Using Android SDK manager: $SDKMGR"
+          "$SDKMGR" "platforms;android-35" "build-tools;35.0.0"
       - name: Build APK
         run: gradle --no-daemon :app:assembleDebug --stacktrace
       - name: Rename APK
