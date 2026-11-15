@@ -4,7 +4,7 @@ on:
     branches: [231-interpreter-android]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   android-apk:
     runs-on: ubuntu-latest
@@ -15,7 +15,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
@@ -32,3 +31,12 @@ jobs:
           name: 231Interpreter-APK
           path: output/231Interpreter-v1.0.apk
           retention-days: 30
+      - name: Publish installable APK as GitHub pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "231-interpreter-v1.0" output/231Interpreter-v1.0.apk \
+            --target "$GITHUB_SHA" \
+            --title "231통역기 Android v1.0" \
+            --notes "Standalone no-login Android bilingual live captions. English original and Korean translation, source/target swap, local history, free on-device ML Kit translation. First use downloads language models." \
+            --prerelease
