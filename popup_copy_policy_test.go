@@ -1,47 +1,56 @@
 package main
 
-import (
-	"os"
-	"strings"
-	"testing"
-)
+import "testing"
 
-func TestCopyOnlyTranslatedEnglishWithoutGlossary(t *testing.T) {
-	src := "전동 펌프가 충분한 유압을 형성하지 못합니다."
-	translated := "The electric pump cannot generate sufficient hydraulic pressure."
-	glossary := "electric pump — 전동 펌프\nhydraulic pressure — 유압"
-	got := eligibleEnglishCopy(src, translated, true)
-	if got != translated {
-		t.Fatalf("translation content mismatch: %q", got)
-	}
-	if strings.Contains(got, glossary) || strings.Contains(got, "유압") {
-		t.Fatalf("glossary/source leaked into copy: %q", got)
-	}
-}
-func TestEnglishCopyNotAllowedForEnglishSourceOrPendingTranslation(t *testing.T) {
-	for _, tc := range []struct {
-		src, result string
-		ready       bool
-	}{
-		{"The warranty period was extended.", "보증기간이 연장되었습니다.", true},
-		{"보증기간이 연장되었습니다.", "Translating…", false},
-		{"보증기간이 연장되었습니다.", "Translation failed: timeout", true},
-		{"보증기간이 연장되었습니다.", "The warranty period was extended.", false},
+func TestCopyTranslatedBodyInBothDirectionsWithoutSourceOrGlossary(t *testing.T) {
+	for _, tc := range []struct{ source, translated, terms string }{
+		{"전동 펌프가 충분한 유압을 형성하지 못합니다.", "The electric pump cannot generate sufficient hydraulic pressure.", "electric pump — 전동 펌프\nhydraulic pressure — 유압"},
+		{"The warranty period was extended.", "보증기간이 연장되었습니다.", "warranty period — 보증기간"},
+		{"개선이 완료되었습니다.\n추가 확인이 필요합니다.", "The improvement has been completed.\nAdditional verification is required.", "improvement — 개선"},
 	} {
-		if r := eligibleEnglishCopy(tc.src, tc.result, tc.ready); r != "" {
-			t.Fatalf("unexpected clipboard content: %q", r)
+		got := eligibleTranslationCopy(tc.source, tc.translated, true)
+		if got != tc.translated {
+			t.Fatalf("want translated body %q, got %q", tc.translated, got)
+		}
+		if got == tc.source || got == tc.terms {
+			t.Fatalf("copied source or glossary: %q", got)
+		}
+		if got := displayedTranslationForCopy(tc.translated, got, true, true, "sentence"); got != tc.translated {
+			t.Fatalf("right click copies something other than visible translation: %q", got)
 		}
 	}
 }
-func TestPDFCraftSelectionFallbackAllowed(t *testing.T) {
-	source, err := os.ReadFile("ocr_worker.ps1")
-	if err != nil {
-		t.Fatal(err)
+func TestCopyOnlyWhenCompletedVisibleAndMatching(t *testing.T) {
+	source := "The warranty period was extended."
+	result := "보증기간이 연장되었습니다."
+	for _, tc := range []struct {
+		source, result string
+		completed      bool
+	}{
+		{source, "Translating…", false},
+		{source, "Translation failed: timeout", true},
+		{source, "Online translation is disabled.", true},
+		{source, "Could not read selected text.", true},
+		{"", result, true},
+	} {
+		if got := eligibleTranslationCopy(tc.source, tc.result, tc.completed); got != "" {
+			t.Fatalf("unexpected copy for pending/error case: %q", got)
+		}
 	}
-	s := string(source)
-	for _, part := range []string{"'pdfcraft'", "'pdfcraftpro'", "$isPdfCraft", "Read-SelectedTextViaCopy", "Selected text copy is unavailable"} {
-		if !strings.Contains(s, part) {
-			t.Fatalf("missing PDF Craft support: %q", part)
+	eligible := eligibleTranslationCopy(source, result, true)
+	for _, tc := range []struct {
+		visible         string
+		shown, sentence bool
+		mode            string
+	}{
+		{result, false, true, "sentence"},
+		{result, true, false, "sentence"},
+		{result, true, true, "word"},
+		{"The warranty period was extended.", true, true, "sentence"},
+		{"Another translation", true, true, "sentence"},
+	} {
+		if got := displayedTranslationForCopy(tc.visible, eligible, tc.shown, tc.sentence, tc.mode); got != "" {
+			t.Fatalf("incorrectly copied stale or inactive translation: %q", got)
 		}
 	}
 }

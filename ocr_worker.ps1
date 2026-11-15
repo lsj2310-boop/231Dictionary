@@ -186,6 +186,14 @@ public static class SelectionWin32 {
     [DllImport("user32.dll")] public static extern uint GetClipboardSequenceNumber();
     [DllImport("user32.dll", SetLastError=true)] public static extern uint EnumClipboardFormats(uint format);
     [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] public static extern short GetAsyncKeyState(int key);
+    // Do not inject Ctrl+C while the user is pressing a modifier or mouse button.
+    public static bool InputHeld() {
+        foreach(int key in new int[] {0x01,0x02,0x04,0x10,0x11,0x12,0x5B,0x5C}) {
+            if ((GetAsyncKeyState(key) & 0x8000) != 0) return true;
+        }
+        return false;
+    }
     [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint processId);
     [DllImport("user32.dll")] static extern void keybd_event(byte key, byte scan, uint flags, UIntPtr extra);
     public static void SendCtrlC() {
@@ -238,12 +246,31 @@ function Read-SelectedText([double]$sx,[double]$sy) {
 # not via plain-text backup (which would destroy copied PowerPoint objects).
 function Read-SelectedTextViaCopy([int64]$expectedHwnd) {
     if (-not $script:selectionWinReady) { return '' }
+    # The fallback has to change the clipboard briefly. Serialize it with the
+    # popup's copy command and NEVER restore over a newer clipboard sequence.
+    $sync = $null
+    $lockHeld = $false
     $old = $null
-    $changed=$false
+    $copySeq = [uint32]0
+    $preserved = $false
     try {
+        $sync = New-Object System.Threading.Mutex($false, 'Local\231DictionaryClipboardTransaction')
+        try {
+            $lockHeld = $sync.WaitOne(1600)
+        } catch [System.Threading.AbandonedMutexException] {
+            $lockHeld = $true
+        }
+        if (-not $lockHeld) {
+            $script:lastSelectionError = 'Clipboard is busy with another translation operation.'
+            return ''
+        }
         $hwnd=[SelectionWin32]::GetForegroundWindow()
         if ($expectedHwnd -le 0 -or $hwnd.ToInt64() -ne $expectedHwnd) {
             $script:lastSelectionError = 'Focus moved away from the originally selected window. Copy canceled.'
+            return ''
+        }
+        if ([SelectionWin32]::InputHeld()) {
+            $script:lastSelectionError = 'Clipboard fallback skipped while a mouse button or modifier key is held.'
             return ''
         }
         $pidNumber=[uint32]0
@@ -256,33 +283,40 @@ function Read-SelectedTextViaCopy([int64]$expectedHwnd) {
                  'firefox','waterfox','opera','vivaldi','arc','zen','sider','thorium','winword','excel',
                  'soffice.bin','wps','et','hwp','hword',
                  'pdfcraft','pdfcraftpro','pdfcraftfree','pdfcraftreader','pdf-craft','pdfcrafttool')
-        # PDF Craft is distributed by multiple vendors. Their executable can have
-        # version/edition suffixes, e.g. PDFCraftPro.exe. Only permit names
-        # starting with PDFCraft / PDF-Craft (not arbitrary applications).
         $isPdfCraft = $processName -match '^pdf[-_]?craft([a-z0-9_-]*)$'
         if (($allow -notcontains $processName) -and -not $isPdfCraft) {
             $script:lastSelectionError = 'Selected text copy is unavailable for this application: ' + $processName
             return ''
         }
+        # If the clipboard cannot be backed up, do NOT run synthetic Ctrl+C.
+        # OleGetClipboard can return a delayed-rendered OLE data object (PPT).
+        $before=[SelectionWin32]::GetClipboardSequenceNumber()
         $hr=[SelectionWin32]::OleGetClipboard([ref]$old)
         if ($hr -ne 0) {
-            # An empty clipboard has nothing to preserve. For non-empty/locked
-            # clipboards, refuse to copy rather than destroying user data.
-            $f=[SelectionWin32]::EnumClipboardFormats(0)
-            $winErr=[Runtime.InteropServices.Marshal]::GetLastWin32Error()
-            if ($f -ne 0 -or $winErr -ne 0) {
-                $script:lastSelectionError = "Failed to preserve clipboard (HRESULT $hr)"
-                return ''
-            }
-            $old=$null
+            $script:lastSelectionError = "Could not preserve original clipboard (HRESULT $hr). Copy canceled."
+            return ''
         }
-        $before=[SelectionWin32]::GetClipboardSequenceNumber()
+        $preserved = $true
+        # The user may have copied something while we were saving the object.
+        if ([SelectionWin32]::GetClipboardSequenceNumber() -ne $before -or
+            [SelectionWin32]::InputHeld() -or
+            [SelectionWin32]::GetForegroundWindow().ToInt64() -ne $expectedHwnd) {
+            $script:lastSelectionError = 'Clipboard or focus changed before automatic copy. Copy canceled.'
+            return ''
+        }
         [SelectionWin32]::SendCtrlC()
         $candidate=''
         for ($try=0; $try -lt 12; $try++) {
-            [Threading.Thread]::Sleep(65)
-            if ([SelectionWin32]::GetClipboardSequenceNumber() -ne $before) {
-                $changed=$true
+            [Threading.Thread]::Sleep(55)
+            $seq=[SelectionWin32]::GetClipboardSequenceNumber()
+            if ($seq -ne $before) {
+                if ($copySeq -eq 0) {
+                    $copySeq = $seq
+                } elseif ($seq -ne $copySeq) {
+                    # Do not mistake a later user's copy for our selected text.
+                    $script:lastSelectionError = 'Clipboard changed again while reading selection. Preserving newer content.'
+                    return ''
+                }
                 try {
                     if ([System.Windows.Forms.Clipboard]::ContainsText()) {
                         $candidate=[System.Windows.Forms.Clipboard]::GetText([System.Windows.Forms.TextDataFormat]::UnicodeText)
@@ -291,28 +325,43 @@ function Read-SelectedTextViaCopy([int64]$expectedHwnd) {
                 } catch {}
             }
         }
-        if (-not $changed) {
-            $script:lastSelectionError = 'Copy did not change the clipboard. Check PDF Craft Select Text mode and whether the PDF has an actual text layer.'
+        if ($copySeq -eq 0) {
+            $script:lastSelectionError = 'Automatic selection copy did not produce clipboard content.'
             return ''
         }
         if ([string]::IsNullOrWhiteSpace($candidate)) {
-            $script:lastSelectionError = 'Copy returned no plain text. The PDF may be scanned or the viewer may have selected an image/annotation instead of text.'
+            $script:lastSelectionError = 'Copy returned no plain text. Check the text-selection mode and the PDF text layer.'
             return ''
         }
         return $candidate
-    } catch { $script:lastSelectionError = "Failed to copy selected text: " + [string]$_.Exception.Message; return '' }
-    finally {
-        if ($changed) {
-            try {
-                $restore=[SelectionWin32]::OleSetClipboard($old)
-                if ($restore -ne 0) {
-                    $script:lastSelectionError="Failed to restore original clipboard (HRESULT $restore)"
+    } catch {
+        $script:lastSelectionError = 'Selection copy canceled: ' + [string]$_.Exception.Message
+        return ''
+    } finally {
+        # Only restore when the clipboard still holds OUR synthetic copy.
+        # A real Ctrl+C performed by the user must always take precedence.
+        if ($preserved -and $copySeq -ne 0) {
+            $current=[SelectionWin32]::GetClipboardSequenceNumber()
+            if ($current -eq $copySeq) {
+                try {
+                    $restore=[SelectionWin32]::OleSetClipboard($old)
+                    if ($restore -ne 0) {
+                        $script:lastSelectionError="Failed to restore original clipboard (HRESULT $restore)"
+                    }
+                } catch {
+                    $script:lastSelectionError='Original clipboard restoration error: ' + [string]$_.Exception.Message
                 }
-            } catch { $script:lastSelectionError="Original clipboard restoration error: " + [string]$_.Exception.Message }
+            } else {
+                $script:lastSelectionError='Skipped clipboard restore because another copy occurred.'
+            }
         }
         if ($null -ne $old) {
             try { [void][Runtime.InteropServices.Marshal]::ReleaseComObject($old) } catch {}
         }
+        if ($lockHeld -and $null -ne $sync) {
+            try { $sync.ReleaseMutex() } catch {}
+        }
+        if ($null -ne $sync) { try { $sync.Dispose() } catch {} }
     }
 }
 

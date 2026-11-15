@@ -32,7 +32,7 @@ import (
 	"unsafe"
 )
 
-//go:embed ocr_worker.ps1 test_ocr.png web_proxy.ps1 browser_pdf_probe.ps1 LICENSE_MIT_MouseTooltipTranslator.txt
+//go:embed ocr_worker.ps1 test_ocr.png web_proxy.ps1 browser_pdf_probe.ps1 LICENSE_MIT_MouseTooltipTranslator.txt tray_on.bin tray_off.bin
 var embedded embed.FS
 
 var (
@@ -123,6 +123,7 @@ const (
 	WM_CONTEXTMENU       = 0x007B
 	WM_LBUTTONDBLCLK     = 0x0203
 	WM_RBUTTONUP         = 0x0205
+	WM_RBUTTONDOWN       = 0x0204
 	WS_POPUP             = 0x80000000
 	WS_EX_TOPMOST        = 0x00000008
 	WS_EX_TRANSPARENT    = 0x00000020
@@ -136,6 +137,7 @@ const (
 	SWP_SHOWWINDOW       = 0x0040
 	HWND_TOPMOST         = ^uintptr(0)
 	NIM_ADD              = 0x0
+	NIM_MODIFY           = 0x1
 	NIM_DELETE           = 0x2
 	NIF_MESSAGE          = 0x1
 	NIF_ICON             = 0x2
@@ -411,7 +413,7 @@ func addShortcut() error {
 	return cmd.Run()
 }
 func installSelf() {
-	if callMessage("Install or update 231Dictionary v1.2?\n\nHover over an English word to view its meaning.\nDrag-select English or Korean sentences for Gemini translation, with source line breaks preserved.\nOrdinary browser web pages are excluded, but PDFs in browsers are supported.\nKakaoTalk is always excluded.\nYour saved Gemini API key and preferences will be retained.\n\nCreated by Lee Sang Il. Free for personal and business use.", MB_YESNO|MB_ICONQUESTION) != IDYES {
+	if callMessage("Install or update 231Dictionary v1.3.2?\n\nHover over an English word to view its meaning.\nDrag-select English or Korean sentences for Gemini translation, with source line breaks preserved.\nOrdinary browser web pages are excluded, but PDFs in browsers are supported.\nKakaoTalk is always excluded.\nYour saved Gemini API key and preferences will be retained.\n\nCreated by Lee Sang Il. Free for personal and business use.", MB_YESNO|MB_ICONQUESTION) != IDYES {
 		return
 	}
 	exe, err := os.Executable()
@@ -496,27 +498,27 @@ func installSelf() {
 	launch := exec.Command(exePath(), "-run")
 	launch.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	if err = launch.Start(); err != nil {
-		callMessage("Installed files, but failed to launch v1.0: "+err.Error(), MB_ICONWARNING)
+		callMessage("Installed files, but failed to launch v1.3.2: "+err.Error(), MB_ICONWARNING)
 		return
 	}
 	ready := false
 	for tries := 0; tries < 50; tries++ {
 		b, e := os.ReadFile(readyPath())
-		if e == nil && strings.HasPrefix(string(b), "v1.0 ") {
+		if e == nil && strings.HasPrefix(string(b), "v1.3.2 ") {
 			ready = true
 			break
 		}
 		time.Sleep(120 * time.Millisecond)
 	}
 	if !ready {
-		callMessage("The update files were copied, but the newly installed v1.0 app could not be confirmed running.\n\nExit the existing app and reinstall, or check your security software.\n\nDiagnostic log: "+logPath(), MB_ICONWARNING)
+		callMessage("The update files were copied, but the newly installed v1.3.2 app could not be confirmed running.\n\nExit the existing app and reinstall, or check your security software.\n\nDiagnostic log: "+logPath(), MB_ICONWARNING)
 		return
 	}
 	keyNote := "If you have already saved your Gemini API key, you do not need to enter it again."
 	if !geminiKeyRegistered() {
 		keyNote = "Gemini API key not configured. Use Set / Change Gemini API Key in the system tray."
 	}
-	callMessage("231Dictionary v1.2 installed successfully!\n\nSelected sentences are translated in both directions (English/Korean), preserving source line breaks.\nKey terms and expressions appear below the translation.\nBrowser web pages are excluded by default, browser PDFs are permitted, and KakaoTalk is always excluded.\n"+keyNote+"\n\nCreated by Lee Sang Il. Free for personal and business use.", MB_ICONINFORMATION)
+	callMessage("231Dictionary v1.3.2 installed successfully!\n\nSelected sentences are translated in both directions (English/Korean), preserving source line breaks.\nKey terms and expressions appear below the translation.\nBrowser web pages are excluded by default, browser PDFs are permitted, and KakaoTalk is always excluded.\n"+keyNote+"\n\nCreated by Lee Sang Il. Free for personal and business use.", MB_ICONINFORMATION)
 }
 func uninstallSelf() {
 	if callMessage("Uninstall 231Dictionary?\n\nThis also removes the startup entry and the Start Menu shortcut.", MB_YESNO|MB_ICONQUESTION) != IDYES {
@@ -538,7 +540,8 @@ func makeWindow() error {
 	pDPIAware.Call()
 	cls := ptr("231DictionaryWindow")
 	instance, _, _ := pGetModuleHandle.Call(0)
-	icon, _, _ := pLoadIcon.Call(0, uintptr(32516)) // IDI_INFORMATION
+	initializeTrayIcons()
+	icon := selectedTrayIcon() // Colored when enabled; gray when paused
 	bg, _, _ := pCreateBrush.Call(color(255, 252, 242))
 	bd, _, _ := pCreateBrush.Call(color(205, 212, 218))
 	brushBG, brushBorder = bg, bd
@@ -571,23 +574,20 @@ func makeWindow() error {
 		return fmt.Errorf("Create tooltip: %v", err)
 	}
 	pShowWindow.Call(tipHWND, SW_HIDE)
-	addTray(icon)
+	addTray()
 	pSetTimer.Call(mainHWND, 1, 60, 0)
 	if ok, _, _ := pRegisterHotKey.Call(mainHWND, 1, MOD_CONTROL|MOD_ALT|MOD_SHIFT, uintptr('D')); ok == 0 {
 		appendDiagnostic("register hotkey failure; use tray menu diagnostics")
 	}
 	return nil
 }
-func addTray(icon uintptr) {
+func addTray() {
 	var ni notifyIconData
-	ni.CbSize = uint32(unsafe.Sizeof(ni))
-	ni.Hwnd = mainHWND
-	ni.ID = 1
-	ni.Flags = NIF_MESSAGE | NIF_ICON | NIF_TIP
+	fillTrayNotification(&ni, NIF_MESSAGE|NIF_ICON|NIF_TIP)
 	ni.CallbackMessage = WM_TRAY
-	ni.Icon = icon
-	copy(ni.Tip[:], syscall.StringToUTF16("231Dictionary | Lee Sang Il | Free personal and business use"))
-	pShellNotify.Call(NIM_ADD, uintptr(unsafe.Pointer(&ni)))
+	if ok, _, err := pShellNotify.Call(NIM_ADD, uintptr(unsafe.Pointer(&ni))); ok == 0 {
+		appendDiagnostic("Shell_NotifyIcon(NIM_ADD) failed: " + fmt.Sprint(err))
+	}
 }
 func cleanupTray() {
 	var ni notifyIconData
@@ -708,7 +708,7 @@ func menu() {
 	}
 }
 func showAbout() {
-	callMessage("231Dictionary v1.2\n\nCreated by Lee Sang Il (independent developer)\nFree for personal and business use\n\nFeatures:\n- Hover over English words for Gemini-powered word meanings.\n- Drag-select English/Korean sentences for two-way translation.\n- Preserve source line breaks and show key terms.\n- Exclude ordinary web pages (allow PDFs in browsers).\n- Always exclude KakaoTalk, including its chat windows.\n\nYour Gemini API key is encrypted for your Windows user account.\nSelected text may be sent to Google Gemini. Do not select confidential information.\n\nThis is not official TDM software.", MB_ICONINFORMATION)
+	callMessage("231Dictionary v1.3.2\n\nCreated by Lee Sang Il (independent developer)\nFree for personal and business use\n\nFeatures:\n- Hover over English words for Gemini-powered word meanings.\n- Drag-select English/Korean sentences for two-way translation.\n- Preserve source line breaks and show key terms.\n- Exclude ordinary web pages (allow PDFs in browsers).\n- Always exclude KakaoTalk, including its chat windows.\n\nYour Gemini API key is encrypted for your Windows user account.\nSelected text may be sent to Google Gemini. Do not select confidential information.\n\nThis is not official TDM software.", MB_ICONINFORMATION)
 }
 func showInfo() {
 	tooltipState := "On"
@@ -734,7 +734,7 @@ func showInfo() {
 			shortcutState += " (unavailable; change shortcut)"
 		}
 	}
-	callMessage("231Dictionary v1.2\n\nWord tooltips: "+tooltipState+"\nToggle shortcut: "+shortcutState+"\nGemini API key: "+keyState+"\nOnline sentence translation: "+onlineState+"\nBrowser exclusion: "+browserState+"\nKakaoTalk exclusion: Always on\n\n1. Hover over an English word for its meaning.\n2. Drag-select English or Korean text for translation with key terms.\n3. In PowerPoint, select text inside a text box; in PDF, use the text-selection tool.\n4. Your API key is verified when it is saved.\n\nCreated by Lee Sang Il", MB_ICONINFORMATION)
+	callMessage("231Dictionary v1.3.2\n\nWord tooltips: "+tooltipState+"\nToggle shortcut: "+shortcutState+"\nGemini API key: "+keyState+"\nOnline sentence translation: "+onlineState+"\nBrowser exclusion: "+browserState+"\nKakaoTalk exclusion: Always on\n\n1. Hover over an English word for its meaning.\n2. Drag-select English or Korean text for translation with key terms.\n3. In PowerPoint, select text inside a text box; in PDF, use the text-selection tool.\n4. Your API key is verified when it is saved.\n\nCreated by Lee Sang Il", MB_ICONINFORMATION)
 }
 
 func windowProc(hwnd, message, wp, lp uintptr) uintptr {
@@ -791,10 +791,16 @@ func windowProc(hwnd, message, wp, lp uintptr) uintptr {
 			}
 			return 0
 		case WM_TRAY:
-			if lp == WM_RBUTTONUP {
+			switch lp {
+			case WM_RBUTTONUP:
 				menu()
-			} else if lp == WM_LBUTTONDBLCLK {
-				showInfo()
+			case WM_LBUTTONUP:
+				// The second mouse-up in a double click must not undo the first toggle.
+				if trayClickCanToggle(time.Now(), trayDoubleClickUntil) {
+					toggleTooltipsFromMenuOrShortcut()
+				}
+			case WM_LBUTTONDBLCLK:
+				trayDoubleClickUntil = time.Now().Add(800 * time.Millisecond).UnixNano()
 			}
 			return 0
 		case WM_DESTROY:
@@ -1414,7 +1420,7 @@ func main() {
 		return
 	}
 	if len(os.Args) > 1 && os.Args[1] == "-version" {
-		callMessage("231Dictionary v1.2\nCreated by Lee Sang Il\nFree for personal and business use", MB_ICONINFORMATION)
+		callMessage("231Dictionary v1.3.2\nCreated by Lee Sang Il\nFree for personal and business use", MB_ICONINFORMATION)
 		return
 	}
 	if len(os.Args) > 1 && os.Args[1] == "-uninstall" {
@@ -1428,6 +1434,7 @@ func main() {
 	prepareDictionary()
 	loadSentenceConsent()
 	loadBrowserExclusion()
+	loadTranslationState() // Restore last ON/OFF state before adding tray icon.
 	if err := ensureWorker(); err != nil {
 		callMessage("OCR setup failed: "+err.Error(), MB_ICONWARNING)
 		return
@@ -1451,8 +1458,8 @@ func main() {
 	lastMoved = time.Now()
 	prepareDictionary()
 	// Installer checks this only after makeWindow() has created the tray UI.
-	_ = os.WriteFile(readyPath(), []byte(fmt.Sprintf("v1.2 %d %s", os.Getpid(), time.Now().Format(time.RFC3339Nano))), 0644)
-	appendDiagnostic(fmt.Sprintf("v1.2 initialized; offline dictionary=%d; OCR worker starting", len(builtinDict)))
+	_ = os.WriteFile(readyPath(), []byte(fmt.Sprintf("v1.3.2 %d %s", os.Getpid(), time.Now().Format(time.RFC3339Nano))), 0644)
+	appendDiagnostic(fmt.Sprintf("v1.3.2 initialized; offline dictionary=%d; OCR worker starting", len(builtinDict)))
 	if !geminiKeyRegistered() {
 		pPostMessage.Call(mainHWND, WM_GEMINI_KEY_PROMPT, 0, 0)
 	}
@@ -1478,6 +1485,7 @@ func main() {
 	if ocrEngine != nil {
 		ocrEngine.stop()
 	}
+	disposeTrayIcons()
 	for _, obj := range []uintptr{fontWord, fontMeaning, brushBG, brushBorder} {
 		if obj != 0 {
 			pDeleteObject.Call(obj)

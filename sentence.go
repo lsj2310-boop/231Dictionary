@@ -17,8 +17,8 @@ import (
 	"unsafe"
 )
 
-// Windows-only selection detection. No clipboard operations or keystroke injection:
-// avoids replacing the user's clipboard or inadvertently copying PPT objects.
+// Windows-only drag-selection detection. The text worker tries UI Automation
+// first and uses a coordinated clipboard fallback only in supported editors.
 var pGetAsyncKeyState = user32.NewProc("GetAsyncKeyState")
 var sentenceOnlineAllowed bool
 var dragDown, dragQualified, selectionBusy, sentenceShown bool
@@ -212,7 +212,7 @@ func handleSelection() {
 	}
 	showSentenceTip("", meaning, terms, s.End)
 	if cached, ok := sentenceMemory.Load(s.Text); ok && sentenceOnlineAllowed {
-		popupEnglishCopyBody = eligibleEnglishCopy(s.Text, cached.(string), true)
+		popupTranslationCopyBody = eligibleTranslationCopy(s.Text, cached.(string), true)
 	}
 	if !sentenceOnlineAllowed || meaning != "Translating…" {
 		return
@@ -252,7 +252,7 @@ func handleSentenceTranslation() {
 	// Korean sentence first, followed by important English terms and idioms.
 	// Do not display the original sentence, a model name, or a "문장 번역" label.
 	showSentenceTip("", t.Korean, selectionGlossary(t.English, t.Korean), dragEnd)
-	popupEnglishCopyBody = eligibleEnglishCopy(t.English, t.Korean, true)
+	popupTranslationCopyBody = eligibleTranslationCopy(t.English, t.Korean, true)
 }
 
 // No text gets stored on disk and only text explicitly drag-selected by the user
@@ -283,7 +283,7 @@ func translateSentence(s string) (string, string, error) {
 	return translated, provider, nil
 }
 func showSentenceTip(original, translation, terms string, at point) {
-	popupEnglishCopyBody = "" // Never copy an unfinished/error message.
+	popupTranslationCopyBody = "" // Never copy an unfinished/error message.
 	if !active || foregroundOrPointIsSuppressed(mouse()) {
 		return
 	}

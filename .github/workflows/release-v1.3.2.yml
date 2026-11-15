@@ -1,0 +1,39 @@
+name: Build and publish 231Dictionary v1.3.2
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/release-v1.3.2.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.2'
+      - name: Verify source and tests
+        run: |
+          go test ./...
+          go vet ./...
+      - name: Build Windows x64 release
+        run: |
+          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -buildvcs=false -trimpath -ldflags='-s -w -H windowsgui' -o 231Dictionary_Installer_v1.3.2.exe .
+          python3 add_pe_version.py 231Dictionary_Installer_v1.3.2.exe
+      - name: Confirm installer matches validated v1.3.2
+        run: |
+          echo '6d37572b9cf7be465dba3a04a1155a88ea4ca87667e7b1c151cc72ff5b025a98  231Dictionary_Installer_v1.3.2.exe' | sha256sum -c -
+      - name: Package installer ZIP
+        run: |
+          mkdir -p dist
+          cp 231Dictionary_Installer_v1.3.2.exe README_English.md RELEASE_NOTES_v1.3.2.md LICENSE_231Dictionary_English.txt LICENSE_MIT_MouseTooltipTranslator.txt dist/
+          (cd dist && zip -9 -q ../231Dictionary_v1.3.2_Installer.zip 231Dictionary_Installer_v1.3.2.exe README_English.md RELEASE_NOTES_v1.3.2.md LICENSE_231Dictionary_English.txt LICENSE_MIT_MouseTooltipTranslator.txt)
+          unzip -t 231Dictionary_v1.3.2_Installer.zip
+      - name: Publish GitHub v1.3.2 release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v1.3.2 231Dictionary_Installer_v1.3.2.exe 231Dictionary_v1.3.2_Installer.zip --target "$GITHUB_SHA" --title '231Dictionary v1.3.2' --notes-file RELEASE_NOTES_v1.3.2.md --latest

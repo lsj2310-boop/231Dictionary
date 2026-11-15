@@ -1,45 +1,55 @@
-# 231Dictionary v1.2 — Windows Translator
+# 231Dictionary v1.3.2 — Windows Korean/English Translator
 
-**Created by Lee Sang Il** · Free for personal and business use.
+Created by **Lee Sang Il** · Free for personal and business use.
 
-231Dictionary is a Windows 10/11 (64-bit) Korean/English translation tool for PowerPoint, text-based PDFs, and other supported documents. It uses Google Gemini online translation with a personal API key.
+231Dictionary is a Windows 10/11 (64-bit) notification-area translation utility for PowerPoint, selectable-text PDF documents (including supported PDF Craft views), and other supported programs. Online translation is provided by Google Gemini and requires your own Gemini API key.
 
-## What's new in v1.2
+## Correction in v1.3.2 — Copy the displayed translation
 
-- **PDF Craft text selection**: Support detection for PDF Craft Windows PDF-viewer processes, and fall back from accessibility selection to copying selectable text when applicable. Some PDF Craft editions and scanned PDFs may still be unsupported.
-- **Right-click to copy English translation**: On a completed **Korean → English** translation popup, right-click to copy **only the translated English sentence(s)**, not the glossary or original text.
-- **Drag popup to reposition**: Hold the left mouse button inside a translation popup and move the mouse to reposition it. It remains visible while the pointer is inside.
+- Right-click a completed sentence translation popup to copy **only the translated sentence currently displayed**.
+- Supports English → Korean and Korean → English equally, and excludes the source sentence and glossary.
+- The clipboard operation is completed before right-click processing returns; a clipboard error is shown rather than silently copying nothing.
+- Left-click and drag the popup to reposition it. Existing single-click tray toggle and clipboard preservation are retained.
 
-## Existing translation features
+## From v1.3 — Single-click ON/OFF tray icon
 
-- English → Korean and Korean → English Gemini sentence translation.
-- Show important words and expressions beneath the translation, while preserving source line breaks where available.
-- Word meanings tooltips on recognized text when enabled.
-- Optionally exclude regular browser web pages while allowing detected PDF documents; KakaoTalk is always excluded.
-- English-language tray menu and encrypted per-user storage of the Gemini API key.
+**Left-click the 231Dictionary icon once in the Windows notification area** (the system tray, beside the clock; open `^` if hidden):
 
-## Download and install
+- **Teal / colored icon:** translation is **ON**. Word tooltips and drag-selection translation are enabled.
+- **Gray icon:** translation is **OFF**. Both word tooltips and sentence translation are paused.
+- Click it again to restore translation. The icon and its hover description update immediately.
+- Your ON/OFF preference is remembered when you exit and relaunch the program.
+- **Right-click** still opens the options menu. The checked status of **Enable / Disable Word Tooltips** remains synchronized with the icon. The existing options menu uses the same toggle.
 
-1. Download [231Dictionary v1.2 for Windows](https://github.com/lsj2310-boop/231Dictionary/releases/tag/v1.2). Choose the EXE directly or the ZIP installer package.
-2. Exit an older running 231Dictionary from the notification-area tray icon.
-3. Run `231Dictionary_Installer_v1.2.exe` and follow the installation prompts.
-4. Register a personal key using **Set / Change Gemini API Key**, if none has been registered previously. Create a key in [Google AI Studio](https://aistudio.google.com/api-keys).
-5. Enable **Allow Online Translation** to use Gemini-powered translations.
+The toggle does not remove your encrypted Gemini API key, change online-translation consent, or change browser exclusions.
 
-Existing Gemini keys and application settings are retained during the update.
+## Existing functions retained
 
-## Important security notes
+- Hover over an English word for its meaning when supported.
+- Drag-select an English sentence to translate it into Korean; view important English words and expressions underneath.
+- Drag-select a Korean sentence to translate it into English; view key English expressions with Korean explanations.
+- Preserve source line breaks when text selection provides them.
+- Right-click a **sentence translation popup** to copy the *currently displayed Korean or English translation only*, without the source sentence or glossary.
+- Left-click and drag the popup to move it; keep the popup visible while the mouse is inside it.
+- Exclude KakaoTalk. Optionally disable ordinary browser pages while allowing recognized browser PDFs.
+- Attempt PDF Craft text selection by its program-aware selection/clipboard path.
 
-- Only install software approved by your company. The EXE is **not digitally code-signed** and Windows SmartScreen warnings may appear even when downloading the ZIP.
-- Selected text can be transmitted to Google Gemini. Do not translate confidential company information or private data without authorization.
-- Gemini API keys are not bundled with the application. Charges or rate limits depend on your Google Gemini API account and model.
+## Installation / updating
 
-## Limitations and verification
+1. Exit the running 231Dictionary from its notification-area menu (**Exit**).
+2. Run `231Dictionary_Installer_v1.3.2.exe`, or extract `231Dictionary_v1.3.2_Installer.zip` and run the EXE inside.
+3. Restart 231Dictionary; its notification-area icon shows the current translation state (teal = ON; gray = OFF).
+4. Left-click once to toggle. Right-click for the options menu.
+5. For first-time use, choose **Set / Change Gemini API Key** from the right-click menu and register your own Google AI Studio API key. Ensure **Allow Online Translation** is enabled.
 
-- PDF Craft refers to more than one PDF program. The fix adds recognized process names but **does not guarantee compatibility with every edition**.
-- A scanned, image-only PDF may not provide selectable text. Sentence translation does not use OCR.
-- The software passed automated Go tests and Windows cross-compilation. Windows UI interaction and live Gemini translation were not tested on a physical target computer.
+The toggle state is saved at `%LOCALAPPDATA%\231Dictionary\translation_enabled_v1.txt`. Existing Gemini API credentials and other preferences are preserved.
 
-## Build and attribution
+## Security and limits
 
-See [BUILD.md](BUILD.md) to build from source. See [LICENSE](LICENSE) and [third-party license notice](LICENSE_MIT_MouseTooltipTranslator.txt) for distribution conditions and attribution.
+Selected text may be sent to Google Gemini. Do not translate confidential, personal, or restricted information without organizational authorization. Comply with your organization's software installation policy.
+
+Unsigned Windows EXEs can trigger Microsoft Defender SmartScreen even when distributed in ZIP files. ZIP packaging is not a security certification.
+
+The Windows GUI and tray callbacks cannot be executed directly in the Linux build environment. Go unit tests and Windows x64 cross-compilation passed; **test real tray click, color change, Explorer behavior, and translation on a Windows machine before wider distribution**.
+
+Third-party attribution is in `LICENSE_MIT_MouseTooltipTranslator.txt`; the About dialog does not claim MIT for the program itself.

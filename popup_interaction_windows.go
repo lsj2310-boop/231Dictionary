@@ -4,20 +4,24 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"runtime"
 	"syscall"
 	"time"
 	"unsafe"
 )
 
 var (
-	pOpenClipboard    = user32.NewProc("OpenClipboard")
-	pEmptyClipboard   = user32.NewProc("EmptyClipboard")
-	pSetClipboardData = user32.NewProc("SetClipboardData")
-	pCloseClipboard   = user32.NewProc("CloseClipboard")
-	pGlobalAlloc      = kernel32.NewProc("GlobalAlloc")
-	pGlobalLock       = kernel32.NewProc("GlobalLock")
-	pGlobalUnlock     = kernel32.NewProc("GlobalUnlock")
-	pGlobalFree       = kernel32.NewProc("GlobalFree")
+	pOpenClipboard       = user32.NewProc("OpenClipboard")
+	pEmptyClipboard      = user32.NewProc("EmptyClipboard")
+	pSetClipboardData    = user32.NewProc("SetClipboardData")
+	pCloseClipboard      = user32.NewProc("CloseClipboard")
+	pWaitForSingleObject = kernel32.NewProc("WaitForSingleObject")
+	pReleaseMutex        = kernel32.NewProc("ReleaseMutex")
+	pGlobalAlloc         = kernel32.NewProc("GlobalAlloc")
+	pGlobalLock          = kernel32.NewProc("GlobalLock")
+	pGlobalUnlock        = kernel32.NewProc("GlobalUnlock")
+	pGlobalFree          = kernel32.NewProc("GlobalFree")
 )
 
 const (
@@ -26,13 +30,57 @@ const (
 )
 
 var (
-	popupDragging        bool
-	popupEntered         bool
-	popupShowAt          time.Time
-	popupDragCursor      point
-	popupDragBounds      rect
-	popupEnglishCopyBody string
+	popupDragging            bool
+	popupRightCaptured       bool
+	popupEntered             bool
+	popupShowAt              time.Time
+	popupDragCursor          point
+	popupDragBounds          rect
+	popupTranslationCopyBody string
 )
+
+// Use the same named mutex as the selection worker. The PowerShell fallback
+// must finish restoring its temporary clipboard before the user's explicit
+// right-click copy takes ownership of the clipboard.
+func withClipboardTransaction(task func() error) error {
+	// Win32 named mutexes and OpenClipboard are bound to the calling OS thread.
+	// A Go goroutine can migrate unless we pin it until ReleaseMutex/CloseClipboard.
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+	name, err := syscall.UTF16PtrFromString(`Local\231DictionaryClipboardTransaction`)
+	if err != nil {
+		return err
+	}
+	handle, _, _ := pCreateMutex.Call(0, 0, uintptr(unsafe.Pointer(name)))
+	if handle == 0 {
+		return errors.New("failed to create clipboard mutex")
+	}
+	defer pCloseHandle.Call(handle)
+	state, _, _ := pWaitForSingleObject.Call(handle, 3000)
+	if state != 0 && state != 0x80 { // WAIT_OBJECT_0 or WAIT_ABANDONED
+		return fmt.Errorf("clipboard transaction wait failed: 0x%x", state)
+	}
+	defer pReleaseMutex.Call(handle)
+	return task()
+}
+
+// Complete the clipboard write *before* returning from the right-click.
+// The previous asynchronous implementation let Ctrl+V race the copy, so users
+// sometimes pasted the last selected source sentence instead of the translated
+// sentence. The translation text is snapshotted before acquiring the lock.
+func copyPopupTranslationNow(text string) {
+	if text == "" {
+		appendDiagnostic("Translation copy skipped: no completed translation is displayed")
+		return
+	}
+	err := withClipboardTransaction(func() error { return copyUnicodeTextToClipboard(tipHWND, text) })
+	if err != nil {
+		appendDiagnostic("Translated sentence copy failed: " + err.Error())
+		callMessage("Could not copy the translation. The clipboard is busy.\nPlease right-click the translation again.\n\n"+err.Error(), MB_ICONWARNING)
+		return
+	}
+	appendDiagnostic("Displayed translated sentence copied to clipboard")
+}
 
 func copyUnicodeTextToClipboard(owner uintptr, text string) error {
 	if text == "" {
@@ -63,13 +111,13 @@ func copyUnicodeTextToClipboard(owner uintptr, text string) error {
 	copy(dst, utf16)
 	pGlobalUnlock.Call(global)
 	opened := false
-	for i := 0; i < 6; i++ {
+	for i := 0; i < 30; i++ {
 		ok, _, _ := pOpenClipboard.Call(owner)
 		if ok != 0 {
 			opened = true
 			break
 		}
-		time.Sleep(25 * time.Millisecond)
+		time.Sleep(40 * time.Millisecond)
 	}
 	if !opened {
 		return errors.New("clipboard is busy")
@@ -87,17 +135,11 @@ func copyUnicodeTextToClipboard(owner uintptr, text string) error {
 	return nil
 }
 
-func currentEnglishTranslationForCopy() string {
+func currentTranslationForCopy() string {
 	uiMu.Lock()
-	mode := tipMode
+	mode, visible := tipMode, tipMean
 	uiMu.Unlock()
-	if !tipShown || !sentenceShown {
-		return ""
-	}
-	if mode != "sentence" {
-		return ""
-	}
-	return popupEnglishCopyBody
+	return displayedTranslationForCopy(visible, popupTranslationCopyBody, tipShown, sentenceShown, mode)
 }
 
 func popupJustShown() {
@@ -109,13 +151,14 @@ func popupJustShown() {
 	popupShowAt = time.Now()
 }
 func resetPopupPointerState() {
-	if popupDragging {
+	if popupDragging || popupRightCaptured {
 		pReleaseCapture.Call()
 	}
 	popupDragging = false
+	popupRightCaptured = false
 	popupEntered = false
 	popupShowAt = time.Time{}
-	popupEnglishCopyBody = ""
+	popupTranslationCopyBody = ""
 }
 func pointIsInPopup(p point) bool {
 	if !tipShown || tipHWND == 0 {
@@ -138,7 +181,7 @@ func handlePopupPointerTimer(p point, now time.Time) bool {
 	if !tipShown {
 		return false
 	}
-	if popupDragging {
+	if popupDragging || popupRightCaptured {
 		return true
 	}
 	if pointIsInPopup(p) {
@@ -171,6 +214,11 @@ func handlePopupMouseMessage(message, wp, lp uintptr) (uintptr, bool) {
 		}
 		pSetCapture.Call(tipHWND)
 		return 0, true
+	case WM_RBUTTONDOWN:
+		popupEntered = true
+		popupRightCaptured = true
+		pSetCapture.Call(tipHWND)
+		return 0, true
 	case WM_MOUSEMOVE:
 		if popupDragging {
 			p := mouse()
@@ -181,6 +229,7 @@ func handlePopupMouseMessage(message, wp, lp uintptr) (uintptr, bool) {
 		return 0, true
 	case WM_CAPTURECHANGED:
 		popupDragging = false
+		popupRightCaptured = false
 		return 0, true
 	case WM_LBUTTONUP:
 		if popupDragging {
@@ -189,15 +238,20 @@ func handlePopupMouseMessage(message, wp, lp uintptr) (uintptr, bool) {
 		}
 		return 0, true
 	case WM_RBUTTONUP:
-		if value := currentEnglishTranslationForCopy(); value != "" {
-			if err := copyUnicodeTextToClipboard(tipHWND, value); err != nil {
-				appendDiagnostic("English translation copy error: " + err.Error())
-			} else {
-				appendDiagnostic("English translated sentence copied")
-			}
+		// Capture means the mouse-up is delivered even if the pointer moves
+		// slightly beyond the popup after pressing the right button.
+		if popupRightCaptured {
+			popupRightCaptured = false
+			pReleaseCapture.Call()
 		}
+		copyPopupTranslationNow(currentTranslationForCopy())
 		return 0, true
 	case WM_CONTEXTMENU:
+		// Keyboard context-menu invocation (Shift+F10/menu key) has -1/-1
+		// coordinates. Mouse right-click is already handled by WM_RBUTTONUP.
+		if int16(lp&0xffff) == -1 && int16((lp>>16)&0xffff) == -1 {
+			copyPopupTranslationNow(currentTranslationForCopy())
+		}
 		return 0, true
 	}
 	return 0, false

@@ -150,6 +150,8 @@ func toggleTooltipsFromMenuOrShortcut() {
 	if active {
 		state = "ON"
 	}
+	saveTranslationState()
+	refreshTrayIcon() // Updates status color for tray, shortcut, and menu toggles.
 	appendDiagnostic("Tooltips toggled " + state)
 }
 
