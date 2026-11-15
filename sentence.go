@@ -82,6 +82,11 @@ func dragEnough(a, b point) bool {
 // Called on the main GUI thread from a 60 ms timer tick.
 func observeDrag(pos point, now time.Time) bool {
 	down := buttonDown()
+	if popupDragging {
+		// The user is repositioning our translation popup, not selecting
+		// another sentence in the underlying document.
+		return true
+	}
 	if down && !dragDown {
 		// A deliberate click/drag starts a new interaction. Invalidate any
 		// in-flight word OCR/Gemini result so it cannot replace a sentence.
@@ -206,6 +211,9 @@ func handleSelection() {
 		terms = selectionGlossary(s.Text, meaning)
 	}
 	showSentenceTip("", meaning, terms, s.End)
+	if cached, ok := sentenceMemory.Load(s.Text); ok && sentenceOnlineAllowed {
+		popupEnglishCopyBody = eligibleEnglishCopy(s.Text, cached.(string), true)
+	}
 	if !sentenceOnlineAllowed || meaning != "Translating…" {
 		return
 	}
@@ -244,6 +252,7 @@ func handleSentenceTranslation() {
 	// Korean sentence first, followed by important English terms and idioms.
 	// Do not display the original sentence, a model name, or a "문장 번역" label.
 	showSentenceTip("", t.Korean, selectionGlossary(t.English, t.Korean), dragEnd)
+	popupEnglishCopyBody = eligibleEnglishCopy(t.English, t.Korean, true)
 }
 
 // No text gets stored on disk and only text explicitly drag-selected by the user
@@ -274,6 +283,7 @@ func translateSentence(s string) (string, string, error) {
 	return translated, provider, nil
 }
 func showSentenceTip(original, translation, terms string, at point) {
+	popupEnglishCopyBody = "" // Never copy an unfinished/error message.
 	if !active || foregroundOrPointIsSuppressed(mouse()) {
 		return
 	}
@@ -333,6 +343,7 @@ func showSentenceTip(original, translation, terms string, at point) {
 	pSetWindowPos.Call(tipHWND, HWND_TOPMOST, uintptr(x), uintptr(y), uintptr(w), uintptr(h), SWP_NOACTIVATE|SWP_SHOWWINDOW)
 	pInvalidate.Call(tipHWND, 0, 1)
 	tipShown = true
+	popupJustShown()
 	sentenceShown = true
 	sentenceUntil = time.Now().Add(32 * time.Second)
 }

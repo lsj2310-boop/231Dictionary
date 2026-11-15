@@ -254,8 +254,16 @@ function Read-SelectedTextViaCopy([int64]$expectedHwnd) {
                  'pdfxedit','pdfxcview','sumatrapdf','msedge','chrome','chromium',
                  'whale','naverwhale','brave','brave-browser','aside','aside-browser','asidebrowser',
                  'firefox','waterfox','opera','vivaldi','arc','zen','sider','thorium','winword','excel',
-                 'soffice.bin','wps','et','hwp','hword')
-        if ($allow -notcontains $processName) { return '' }
+                 'soffice.bin','wps','et','hwp','hword',
+                 'pdfcraft','pdfcraftpro','pdfcraftfree','pdfcraftreader','pdf-craft','pdfcrafttool')
+        # PDF Craft is distributed by multiple vendors. Their executable can have
+        # version/edition suffixes, e.g. PDFCraftPro.exe. Only permit names
+        # starting with PDFCraft / PDF-Craft (not arbitrary applications).
+        $isPdfCraft = $processName -match '^pdf[-_]?craft([a-z0-9_-]*)$'
+        if (($allow -notcontains $processName) -and -not $isPdfCraft) {
+            $script:lastSelectionError = 'Selected text copy is unavailable for this application: ' + $processName
+            return ''
+        }
         $hr=[SelectionWin32]::OleGetClipboard([ref]$old)
         if ($hr -ne 0) {
             # An empty clipboard has nothing to preserve. For non-empty/locked
@@ -283,8 +291,14 @@ function Read-SelectedTextViaCopy([int64]$expectedHwnd) {
                 } catch {}
             }
         }
-        if (-not $changed) { return '' }
-        if ([string]::IsNullOrWhiteSpace($candidate)) { return '' }
+        if (-not $changed) {
+            $script:lastSelectionError = 'Copy did not change the clipboard. Check PDF Craft Select Text mode and whether the PDF has an actual text layer.'
+            return ''
+        }
+        if ([string]::IsNullOrWhiteSpace($candidate)) {
+            $script:lastSelectionError = 'Copy returned no plain text. The PDF may be scanned or the viewer may have selected an image/annotation instead of text.'
+            return ''
+        }
         return $candidate
     } catch { $script:lastSelectionError = "Failed to copy selected text: " + [string]$_.Exception.Message; return '' }
     finally {

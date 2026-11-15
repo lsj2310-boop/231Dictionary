@@ -1,44 +1,45 @@
-# 231Dictionary v1.1 — Windows Translator
+# 231Dictionary v1.2 — Windows Translator
 
 **Created by Lee Sang Il** · Free for personal and business use.
 
-231Dictionary is a Windows 10/11 (64-bit) translation utility for English and Korean text. It helps users read PowerPoint presentations, selectable-text PDF files, and other supported documents without repeatedly copying text into a separate translation site.
+231Dictionary is a Windows 10/11 (64-bit) Korean/English translation tool for PowerPoint, text-based PDFs, and other supported documents. It uses Google Gemini online translation with a personal API key.
 
-## Translation features
+## What's new in v1.2
 
-- **English → Korean:** Select an English sentence with the mouse to translate it into Korean and see important English terms and expressions explained underneath.
-- **Korean → English:** Select a Korean sentence to translate it into English, with key English expressions explained in Korean.
-- **Word meanings:** When word recognition is supported, moving the mouse over an English word can show a small Korean meaning tooltip.
-- **Line breaks:** Preserve source line breaks where the selected text provides them.
-- **App exclusions:** Always exclude KakaoTalk. Regular browser web pages may be excluded via **Disable on Web Pages (Allow PDFs)**, while detectable browser PDF documents remain supported.
-- **Gemini integration:** A personal Google Gemini API key is required for online translation and is stored encrypted for the current Windows user.
+- **PDF Craft text selection**: Support detection for PDF Craft Windows PDF-viewer processes, and fall back from accessibility selection to copying selectable text when applicable. Some PDF Craft editions and scanned PDFs may still be unsupported.
+- **Right-click to copy English translation**: On a completed **Korean → English** translation popup, right-click to copy **only the translated English sentence(s)**, not the glossary or original text.
+- **Drag popup to reposition**: Hold the left mouse button inside a translation popup and move the mouse to reposition it. It remains visible while the pointer is inside.
 
-## Installation and use
+## Existing translation features
 
-1. Visit the [v1.1 Releases page](https://github.com/lsj2310-boop/231Dictionary/releases/tag/v1.1).
-2. Download `231Dictionary_Installer_v1.1.exe`, or download `231Dictionary_v1.1_Installer.zip` and extract its contents.
-3. Exit any running 231Dictionary instance from the Windows notification area before installing the update.
-4. Run the installer and start 231Dictionary.
-5. Right-click the notification-area icon. Choose **Set / Change Gemini API Key** to register your own API key from [Google AI Studio](https://aistudio.google.com/api-keys).
-6. Ensure **Allow Online Translation** is enabled and select English or Korean text in a supported document.
+- English → Korean and Korean → English Gemini sentence translation.
+- Show important words and expressions beneath the translation, while preserving source line breaks where available.
+- Word meanings tooltips on recognized text when enabled.
+- Optionally exclude regular browser web pages while allowing detected PDF documents; KakaoTalk is always excluded.
+- English-language tray menu and encrypted per-user storage of the Gemini API key.
 
-Existing Gemini API credentials and settings are preserved when updating from earlier versions.
+## Download and install
 
-## Supported environments and limitations
+1. Download [231Dictionary v1.2 for Windows](https://github.com/lsj2310-boop/231Dictionary/releases/tag/v1.2). Choose the EXE directly or the ZIP installer package.
+2. Exit an older running 231Dictionary from the notification-area tray icon.
+3. Run `231Dictionary_Installer_v1.2.exe` and follow the installation prompts.
+4. Register a personal key using **Set / Change Gemini API Key**, if none has been registered previously. Create a key in [Google AI Studio](https://aistudio.google.com/api-keys).
+5. Enable **Allow Online Translation** to use Gemini-powered translations.
 
-- Windows 10/11 (64-bit).
-- Text recognition depends on the document viewer and whether the text can be selected or exposed through accessibility interfaces.
-- Translation needs an internet connection and access to the Google Gemini API. Google may apply quotas or charges depending on the model and account.
-- Some PDF viewers, presentations, or network environments may limit functionality.
+Existing Gemini keys and application settings are retained during the update.
 
-## Security and licensing
+## Important security notes
 
-Selected text may be sent to Google Gemini for translation. Do not send confidential, personal, or restricted business information without authorization. Follow your organization's software installation and data handling policies.
+- Only install software approved by your company. The EXE is **not digitally code-signed** and Windows SmartScreen warnings may appear even when downloading the ZIP.
+- Selected text can be transmitted to Google Gemini. Do not translate confidential company information or private data without authorization.
+- Gemini API keys are not bundled with the application. Charges or rate limits depend on your Google Gemini API account and model.
 
-The installer is not digitally code-signed; downloading it in a ZIP archive does **not** guarantee Windows SmartScreen warnings will disappear.
+## Limitations and verification
 
-See `LICENSE` for the application's distribution terms and `LICENSE_MIT_MouseTooltipTranslator.txt` for third-party attribution. The About screen does not claim that the application itself is distributed under the MIT license.
+- PDF Craft refers to more than one PDF program. The fix adds recognized process names but **does not guarantee compatibility with every edition**.
+- A scanned, image-only PDF may not provide selectable text. Sentence translation does not use OCR.
+- The software passed automated Go tests and Windows cross-compilation. Windows UI interaction and live Gemini translation were not tested on a physical target computer.
 
-## Building from source
+## Build and attribution
 
-See [BUILD.md](BUILD.md) for Windows build instructions.
+See [BUILD.md](BUILD.md) to build from source. See [LICENSE](LICENSE) and [third-party license notice](LICENSE_MIT_MouseTooltipTranslator.txt) for distribution conditions and attribution.

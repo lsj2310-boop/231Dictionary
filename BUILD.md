@@ -1,21 +1,22 @@
-# 231Dictionary v1.1 — Build / Verification
+# 231Dictionary v1.2 — Build and Verification
 
-Windows 10/11 x64 GUI program, built from the v1.0 English/KakaoTalk-exclusion codebase. New functionality: persistent global shortcut to toggle the existing **Enable / Disable Word Tooltips** action.
+Windows 10/11 x64 GUI translation utility.
 
 ## Build prerequisites
 
-Go 1.23+ and Python 3. The Go project uses only Go standard-library dependencies.
+- Go 1.23.2 or compatible Go 1.23+ release
+- Python 3 for PE version information
+- Go project has standard-library-only dependencies
 
 ```bash
 go test ./...
-go test -race ./...
 go vet ./...
-GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags='-s -w -H windowsgui' -o 231Dictionary_Installer_v1.1.exe .
-python3 add_pe_version.py 231Dictionary_Installer_v1.1.exe
+GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -buildvcs=false -trimpath -ldflags='-s -w -H windowsgui' -o 231Dictionary_Installer_v1.2.exe .
+python3 add_pe_version.py 231Dictionary_Installer_v1.2.exe
 ```
 
-`RegisterHotKey` (Win32) registers a non-repeating hotkey with the app's hidden main window; `WM_HOTKEY` and the existing tray command invoke the same toggle function. A separate native Win32 settings window accepts combinations such as `Ctrl+Alt+T` and `Ctrl+Shift+F5` and saves them to `%LOCALAPPDATA%\231Dictionary\toggle_shortcut_v1.txt`. Shortcut changes are only persisted after a successful registration. Invalid or occupied shortcuts do not displace the existing shortcut. Close/uninstall unregisters the global hotkey; the user can also remove it via the tray menu.
+Expected SHA-256 of the tested v1.2 EXE:
 
-This build retains translation, glossary, browser-PDF, KakaoTalk-exclusion, Gemini encryption, and English-language UI. The About UI does not show "MIT"; applicable third-party notices remain with the software.
+`11bbd89e10c3027359a8d9b87d1e53d0c498eac0a5bafa6c14c65876a257a800`
 
-Cross-compilation and unit tests alone do **not** establish that the full tray/dialog behavior or Gemini requests work on a real Windows PC. Test the menu checkbox, shortcut persistence after restart, conflicts, and PowerPoint/PDF behavior on a target computer before enterprise deployment.
+Do not distribute or test with real confidential customer/company records via public Gemini APIs unless your organization authorizes such transfer. The source includes PDF Craft selection handling, right-click English copy, and mouse-drag popup positioning, but running Windows GUI/PDF Craft tests requires a Windows computer.

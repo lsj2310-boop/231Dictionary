@@ -1,44 +1,45 @@
-# 231Dictionary v1.1 — Windows Translator
+# 231Dictionary v1.2 — Windows Korean/English Translator
 
-Created by **Lee Sang Il** · Free for personal and business use.
+Created by **Lee Sang Il**. Free for personal and business use.
 
-231Dictionary is a small Windows 10/11 (64-bit) tray utility that displays Korean-English translations and key expressions in PowerPoint, selectable-text PDFs and other supported documents. Its main translation service is Google Gemini, requiring a user-supplied API key and permission for online translation.
+## What's improved in v1.2
 
-## What's new in v1.1
+- **PDF Craft compatibility:** selecting text in the PDF Craft Windows application now uses the existing Windows accessibility text-selection path and, when necessary, a carefully scoped copy-text fallback. PDF Craft executable names (`PDFCraft.exe`, `PDFCraftPro.exe`, and compatible editions) are recognized. Text selection must be enabled, and scanned image-only PDF content cannot be translated by direct-text extraction.
+- **Copy English translation:** on a completed Korean-to-English sentence popup, **right-click** to copy only the translated English sentence(s). The English vocabulary/glossary below it is *not* included. Right-clicking the popup before translation completes does not overwrite the clipboard.
+- **Move translation popup:** hold the **left mouse button** inside the popup, drag it to another position, and release. The popup stays open while the mouse is inside it and closes after the mouse leaves it.
 
-**Customizable global toggle shortcut:** Use the 231Dictionary tray icon's context menu to choose **Set / Change Toggle Shortcut...**. Enter a key combination, e.g. `Ctrl+Alt+T`, and click **Save**. Pressing it in PowerPoint, a PDF viewer, or another application toggles the check mark of **Enable / Disable Word Tooltips**. The same toggle is available in the menu. The shortcut is saved for future launches.
+## Existing features
 
-- Accepted combinations: `Ctrl+Alt+` or `Ctrl+Shift+` plus **A–Z, 0–9, or F1–F11**. Example: `Ctrl+Shift+F5`.
-- Repeated key presses do not cause rapid toggling while a key is held (`MOD_NOREPEAT`).
-- If another app has registered a shortcut, the program warns you and preserves the previous shortcut. Choose another combination.
-- **Remove Toggle Shortcut** clears the current shortcut. The toggle itself remains available in the tray menu.
-- Changing the enabled state also follows the existing app behavior: both word tooltips and drag-selection translation are paused when disabled.
-- The application starts without a global shortcut until you register one.
+- English-to-Korean and Korean-to-English translations powered by Google Gemini (a personal API key is required).
+- Highlight or drag-select text in supported PowerPoint and PDF applications, and retain source line breaks in the translated text where possible.
+- Show important terms and expressions under sentence translations.
+- Hover translation where recognized and enabled.
+- Option to disable translation on ordinary browser web pages while permitting browser PDF readers.
+- Always disabled in KakaoTalk.
+- Configure a global keyboard shortcut for enabling/disabling translation from the tray menu.
 
-## Translation features
+## Installation
 
-- English word tooltip: move the mouse over a word to view its meaning, when enabled and recognized.
-- Drag-select English sentences to translate to Korean and view important terms underneath.
-- Drag-select Korean sentences to translate to English, with an English-terms glossary in Korean.
-- Maintain the source's line breaks where the document exposes selectable text.
-- Exclude KakaoTalk at all times. Ordinary browser web pages may be excluded via **Disable on Web Pages (Allow PDFs)**. Browser PDFs are allowed when detected.
-- Reuse the Gemini API key encrypted for your Windows user account. API and online-translation settings are not changed by the hotkey update.
+1. Exit an existing 231Dictionary instance using the notification-area tray menu.
+2. Run `231Dictionary_Installer_v1.2.exe` (or unzip `231Dictionary_v1.2_Installer.zip` and run the included EXE).
+3. In Windows notification area, right-click 231Dictionary; choose **Set / Change Gemini API Key** if a key has not previously been registered.
+4. Make sure **Allow Online Translation** is enabled.
+5. In PDF Craft, select **Select text** (not annotation or hand tool). Drag to highlight actual PDF text, then release.
+6. On a Korean-to-English translated sentence, right-click the popup to copy the English translation, or left-drag the popup to reposition it.
 
-## Install / update
+## Important security notes
 
-1. Exit the running 231Dictionary from its tray menu.
-2. Run **231Dictionary_Installer_v1.1.exe** and confirm installation.
-3. Right-click the 231Dictionary notification-area icon.
-4. Select **Set / Change Toggle Shortcut...**, type `Ctrl+Alt+T`, and choose **Save**.
-5. Press `Ctrl+Alt+T` once to disable, and again to re-enable. Reopen the tray menu to inspect the check mark.
-6. If needed, register a different combination or choose **Remove Toggle Shortcut**.
+Selected text is sent to Google Gemini. Never send company-confidential information or personally identifiable data unless your organization expressly permits it.
 
-Existing Gemini keys, startup settings, and browser-PDF preferences are left intact. The shortcut setting is stored in `%LOCALAPPDATA%\231Dictionary\toggle_shortcut_v1.txt`.
+The installer is not digitally code-signed. Windows SmartScreen may warn even when the program is distributed inside a ZIP. Obey the software-installation rules of your organization.
 
-## Security and limitations
+Previous Gemini API credentials and application settings are retained. No API keys are included in the distributed source or executable.
 
-Selected text may be transmitted to Google Gemini. Do not select confidential or personal data whose external disclosure is prohibited. Comply with company security and software installation policies. ZIP packaging does not guarantee that Windows SmartScreen will stop warning about unsigned executables.
+## Limitations
 
-This package was cross-compiled and unit-tested, but the installer, global shortcut registration, PowerPoint, PDF behavior, and Gemini API access were **not** directly exercised on a real Windows computer in this environment. See the verification report for scope and limitations.
+- PDF Craft is the name of more than one distinct PDF program. Exact process names and text-selection implementations vary. Direct text access has been extended for common PDF Craft process names, but actual operation **has not been verified on the user's Windows PC**.
+- Selected text cannot be extracted from image-only PDFs without OCR, which the sentence selection workflow deliberately does not use.
+- This source was cross-compiled for Windows and unit-tested in a non-Windows environment; Windows GUI mouse interactions and the live Gemini service require an on-device check.
+- The right-click copy function is **only** for completed Korean-to-English sentence translations; it does not copy the original Korean text or any glossary entries.
 
-The 231Dictionary About screen does not claim the MIT license; applicable third-party license notices are preserved separately as required by their terms.
+Third-party notices are included separately in `LICENSE_MIT_MouseTooltipTranslator.txt`.

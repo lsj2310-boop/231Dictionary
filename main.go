@@ -53,6 +53,9 @@ var (
 	pGetForegroundWindow    = user32.NewProc("GetForegroundWindow")
 	pSetWindowPos           = user32.NewProc("SetWindowPos")
 	pShowWindow             = user32.NewProc("ShowWindow")
+	pGetWindowRect          = user32.NewProc("GetWindowRect")
+	pSetCapture             = user32.NewProc("SetCapture")
+	pReleaseCapture         = user32.NewProc("ReleaseCapture")
 	pInvalidate             = user32.NewProc("InvalidateRect")
 	pBeginPaint             = user32.NewProc("BeginPaint")
 	pEndPaint               = user32.NewProc("EndPaint")
@@ -102,7 +105,6 @@ const (
 	WM_CLOSE             = 0x0010
 	WM_COMMAND           = 0x0111
 	WM_TIMER             = 0x0113
-	WM_CONTEXTMENU       = 0x007B
 	WM_APP               = 0x8000
 	WM_TRAY              = WM_APP + 10
 	WM_RESULT            = WM_APP + 11
@@ -114,6 +116,11 @@ const (
 	MOD_CONTROL          = 0x0002
 	MOD_ALT              = 0x0001
 	MOD_SHIFT            = 0x0004
+	WM_LBUTTONDOWN       = 0x0201
+	WM_LBUTTONUP         = 0x0202
+	WM_MOUSEMOVE         = 0x0200
+	WM_CAPTURECHANGED    = 0x0215
+	WM_CONTEXTMENU       = 0x007B
 	WM_LBUTTONDBLCLK     = 0x0203
 	WM_RBUTTONUP         = 0x0205
 	WS_POPUP             = 0x80000000
@@ -125,6 +132,7 @@ const (
 	SW_SHOWNOACTIVATE    = 4
 	SWP_NOACTIVATE       = 0x0010
 	SWP_NOMOVE           = 0x0002
+	SWP_NOSIZE           = 0x0001
 	SWP_SHOWWINDOW       = 0x0040
 	HWND_TOPMOST         = ^uintptr(0)
 	NIM_ADD              = 0x0
@@ -403,7 +411,7 @@ func addShortcut() error {
 	return cmd.Run()
 }
 func installSelf() {
-	if callMessage("Install or update 231Dictionary v1.1?\n\nHover over an English word to view its meaning.\nDrag-select English or Korean sentences for Gemini translation, with source line breaks preserved.\nOrdinary browser web pages are excluded, but PDFs in browsers are supported.\nKakaoTalk is always excluded.\nYour saved Gemini API key and preferences will be retained.\n\nCreated by Lee Sang Il. Free for personal and business use.", MB_YESNO|MB_ICONQUESTION) != IDYES {
+	if callMessage("Install or update 231Dictionary v1.2?\n\nHover over an English word to view its meaning.\nDrag-select English or Korean sentences for Gemini translation, with source line breaks preserved.\nOrdinary browser web pages are excluded, but PDFs in browsers are supported.\nKakaoTalk is always excluded.\nYour saved Gemini API key and preferences will be retained.\n\nCreated by Lee Sang Il. Free for personal and business use.", MB_YESNO|MB_ICONQUESTION) != IDYES {
 		return
 	}
 	exe, err := os.Executable()
@@ -508,7 +516,7 @@ func installSelf() {
 	if !geminiKeyRegistered() {
 		keyNote = "Gemini API key not configured. Use Set / Change Gemini API Key in the system tray."
 	}
-	callMessage("231Dictionary v1.1 installed successfully!\n\nSelected sentences are translated in both directions (English/Korean), preserving source line breaks.\nKey terms and expressions appear below the translation.\nBrowser web pages are excluded by default, browser PDFs are permitted, and KakaoTalk is always excluded.\n"+keyNote+"\n\nCreated by Lee Sang Il. Free for personal and business use.", MB_ICONINFORMATION)
+	callMessage("231Dictionary v1.2 installed successfully!\n\nSelected sentences are translated in both directions (English/Korean), preserving source line breaks.\nKey terms and expressions appear below the translation.\nBrowser web pages are excluded by default, browser PDFs are permitted, and KakaoTalk is always excluded.\n"+keyNote+"\n\nCreated by Lee Sang Il. Free for personal and business use.", MB_ICONINFORMATION)
 }
 func uninstallSelf() {
 	if callMessage("Uninstall 231Dictionary?\n\nThis also removes the startup entry and the Start Menu shortcut.", MB_YESNO|MB_ICONQUESTION) != IDYES {
@@ -558,7 +566,7 @@ func makeWindow() error {
 	if mainHWND == 0 {
 		return fmt.Errorf("Create main window: %v", err)
 	}
-	tipHWND, _, err = pCreateWindow.Call(WS_EX_TOPMOST|WS_EX_TRANSPARENT|WS_EX_TOOLWINDOW|WS_EX_NOACTIVATE, uintptr(unsafe.Pointer(cls)), uintptr(unsafe.Pointer(ptr("231Dictionary"))), WS_POPUP, 0, 0, uintptr(tipWidth), uintptr(tipHeight), mainHWND, 0, instance, 0)
+	tipHWND, _, err = pCreateWindow.Call(WS_EX_TOPMOST|WS_EX_TOOLWINDOW|WS_EX_NOACTIVATE, uintptr(unsafe.Pointer(cls)), uintptr(unsafe.Pointer(ptr("231Dictionary"))), WS_POPUP, 0, 0, uintptr(tipWidth), uintptr(tipHeight), mainHWND, 0, instance, 0)
 	if tipHWND == 0 {
 		return fmt.Errorf("Create tooltip: %v", err)
 	}
@@ -700,7 +708,7 @@ func menu() {
 	}
 }
 func showAbout() {
-	callMessage("231Dictionary v1.1\n\nCreated by Lee Sang Il (independent developer)\nFree for personal and business use\n\nFeatures:\n- Hover over English words for Gemini-powered word meanings.\n- Drag-select English/Korean sentences for two-way translation.\n- Preserve source line breaks and show key terms.\n- Exclude ordinary web pages (allow PDFs in browsers).\n- Always exclude KakaoTalk, including its chat windows.\n\nYour Gemini API key is encrypted for your Windows user account.\nSelected text may be sent to Google Gemini. Do not select confidential information.\n\nThis is not official TDM software.", MB_ICONINFORMATION)
+	callMessage("231Dictionary v1.2\n\nCreated by Lee Sang Il (independent developer)\nFree for personal and business use\n\nFeatures:\n- Hover over English words for Gemini-powered word meanings.\n- Drag-select English/Korean sentences for two-way translation.\n- Preserve source line breaks and show key terms.\n- Exclude ordinary web pages (allow PDFs in browsers).\n- Always exclude KakaoTalk, including its chat windows.\n\nYour Gemini API key is encrypted for your Windows user account.\nSelected text may be sent to Google Gemini. Do not select confidential information.\n\nThis is not official TDM software.", MB_ICONINFORMATION)
 }
 func showInfo() {
 	tooltipState := "On"
@@ -726,16 +734,21 @@ func showInfo() {
 			shortcutState += " (unavailable; change shortcut)"
 		}
 	}
-	callMessage("231Dictionary v1.1\n\nWord tooltips: "+tooltipState+"\nToggle shortcut: "+shortcutState+"\nGemini API key: "+keyState+"\nOnline sentence translation: "+onlineState+"\nBrowser exclusion: "+browserState+"\nKakaoTalk exclusion: Always on\n\n1. Hover over an English word for its meaning.\n2. Drag-select English or Korean text for translation with key terms.\n3. In PowerPoint, select text inside a text box; in PDF, use the text-selection tool.\n4. Your API key is verified when it is saved.\n\nCreated by Lee Sang Il", MB_ICONINFORMATION)
+	callMessage("231Dictionary v1.2\n\nWord tooltips: "+tooltipState+"\nToggle shortcut: "+shortcutState+"\nGemini API key: "+keyState+"\nOnline sentence translation: "+onlineState+"\nBrowser exclusion: "+browserState+"\nKakaoTalk exclusion: Always on\n\n1. Hover over an English word for its meaning.\n2. Drag-select English or Korean text for translation with key terms.\n3. In PowerPoint, select text inside a text box; in PDF, use the text-selection tool.\n4. Your API key is verified when it is saved.\n\nCreated by Lee Sang Il", MB_ICONINFORMATION)
 }
 
 func windowProc(hwnd, message, wp, lp uintptr) uintptr {
 	if result, handled := handleShortcutWindowMessage(hwnd, message, wp, lp); handled {
 		return result
 	}
-	if hwnd == tipHWND && message == WM_PAINT {
-		drawTip(hwnd)
-		return 0
+	if hwnd == tipHWND {
+		if result, handled := handlePopupMouseMessage(message, wp, lp); handled {
+			return result
+		}
+		if message == WM_PAINT {
+			drawTip(hwnd)
+			return 0
+		}
 	}
 	if hwnd == mainHWND {
 		switch message {
@@ -862,6 +875,7 @@ func hide231Dictionary() {
 		pShowWindow.Call(tipHWND, SW_HIDE)
 		tipShown = false
 	}
+	resetPopupPointerState()
 }
 func mouse() point { var p point; pGetCursor.Call(uintptr(unsafe.Pointer(&p))); return p }
 func near(a, b point) bool {
@@ -900,6 +914,9 @@ func onTimer() {
 		lastPos, lastMoved = p, now
 		lastCheckAt = time.Time{}
 		return // Restart the normal 0.2-second dwell after leaving a browser.
+	}
+	if handlePopupPointerTimer(p, now) {
+		return
 	}
 	if observeDrag(p, now) {
 		return
@@ -1051,6 +1068,7 @@ func showSmall231Dictionary(word, meaning string, at point) {
 	pSetWindowPos.Call(tipHWND, HWND_TOPMOST, uintptr(x), uintptr(y), uintptr(w), uintptr(h), SWP_NOACTIVATE|SWP_SHOWWINDOW)
 	pInvalidate.Call(tipHWND, 0, 1)
 	tipShown = true
+	popupJustShown()
 }
 
 // capture: a 720x180 screen crop enlarged 1.5x for reliable small-font OCR.
@@ -1396,7 +1414,7 @@ func main() {
 		return
 	}
 	if len(os.Args) > 1 && os.Args[1] == "-version" {
-		callMessage("231Dictionary v1.1\nCreated by Lee Sang Il\nFree for personal and business use", MB_ICONINFORMATION)
+		callMessage("231Dictionary v1.2\nCreated by Lee Sang Il\nFree for personal and business use", MB_ICONINFORMATION)
 		return
 	}
 	if len(os.Args) > 1 && os.Args[1] == "-uninstall" {
@@ -1433,8 +1451,8 @@ func main() {
 	lastMoved = time.Now()
 	prepareDictionary()
 	// Installer checks this only after makeWindow() has created the tray UI.
-	_ = os.WriteFile(readyPath(), []byte(fmt.Sprintf("v1.1 %d %s", os.Getpid(), time.Now().Format(time.RFC3339Nano))), 0644)
-	appendDiagnostic(fmt.Sprintf("v1.1 initialized; offline dictionary=%d; OCR worker starting", len(builtinDict)))
+	_ = os.WriteFile(readyPath(), []byte(fmt.Sprintf("v1.2 %d %s", os.Getpid(), time.Now().Format(time.RFC3339Nano))), 0644)
+	appendDiagnostic(fmt.Sprintf("v1.2 initialized; offline dictionary=%d; OCR worker starting", len(builtinDict)))
 	if !geminiKeyRegistered() {
 		pPostMessage.Call(mainHWND, WM_GEMINI_KEY_PROMPT, 0, 0)
 	}
