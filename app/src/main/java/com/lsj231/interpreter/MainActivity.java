@@ -4,6 +4,11 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ClipData;
+import android.net.Uri;
+import android.os.SystemClock;
+import android.text.InputType;
+import android.widget.EditText;
+import android.widget.CheckBox;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.ContentValues;
@@ -79,6 +84,11 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private long lastResultAt=0;
     private long sessionId=-1;
     private Runnable partialJob;
+    private ApiKeyVault apiVault;
+    private GeminiLiveClient liveGemini;
+    private GeminiTextTranslator geminiTranslator;
+    private boolean geminiActive=false;
+    private long lastPartialRequestAt=0;
 
     private static final class Phrase {
         String source;
@@ -89,6 +99,8 @@ public final class MainActivity extends Activity implements RecognitionListener 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         prefs=getSharedPreferences("231_settings",MODE_PRIVATE);
+        apiVault=new ApiKeyVault(this);
+        geminiTranslator=new GeminiTextTranslator();
         fontSp=prefs.getInt("font",21);
         dark=prefs.getBoolean("dark",true);
         offlinePreferred=prefs.getBoolean("offline",false);
@@ -169,6 +181,13 @@ public final class MainActivity extends Activity implements RecognitionListener 
         LinearLayout.LayoutParams hp=new LinearLayout.LayoutParams(dp(45),dp(44));hp.leftMargin=dp(8);
         header.addView(settings,hp);settings.setOnClickListener(v->showSettings());
         root.addView(header);
+        Button geminiButton=button("Gemini",panelBg());
+        geminiButton.setTextColor(PURPLE);
+        geminiButton.setTextSize(12);
+        LinearLayout.LayoutParams geminiLp=new LinearLayout.LayoutParams(dp(74),dp(44));
+        geminiLp.leftMargin=dp(8);
+        header.addView(geminiButton,geminiLp);
+        geminiButton.setOnClickListener(v->showGeminiKeyDialog());
 
         statusView=text(statusMessage,12,GREEN,false);
         statusView.setGravity(Gravity.CENTER_VERTICAL);statusView.setPadding(dp(2),0,0,dp(10));
@@ -297,6 +316,11 @@ public final class MainActivity extends Activity implements RecognitionListener 
         if(checkSelfPermission(Manifest.permission.RECORD_AUDIO)!=PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO},MIC_REQUEST);return;
         }
+        if(prefs.getBoolean("gemini_enabled",true)){
+            String key=apiVault.read();
+            if(key.isEmpty()){showGeminiKeyDialog();return;}
+            startGemini(key);return;
+        }
         if(!SpeechRecognizer.isRecognitionAvailable(this)) {
             new AlertDialog.Builder(this).setTitle("음성 인식 서비스를 찾을 수 없습니다")
             .setMessage("Google 음성 인식 서비스 또는 기기에 설치된 음성 인식 앱을 활성화하세요.")
@@ -322,6 +346,76 @@ public final class MainActivity extends Activity implements RecognitionListener 
             running=false;stopRecognizerOnly();status("음성 인식 초기화 실패: "+e.getMessage());
         }
     }
+
+    private void showGeminiKeyDialog(){
+        LinearLayout layout=new LinearLayout(this);layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(dp(22),dp(8),dp(22),dp(8));
+        TextView info=text("Gemini 3.5 Transcribe Live\n현재 API 키: "+
+            (apiVault.exists()?"등록됨 (암호화 보관)":"미등록")+
+            "\nGoogle AI Studio에서 발급받은 개인 API 키를 입력하세요.\n마이크 음성이 Google API로 전송됩니다.",13,Color.DKGRAY,false);
+        layout.addView(info);
+        EditText field=new EditText(this);
+        field.setSingleLine(true);
+        field.setHint("Gemini API Key 입력");
+        field.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        layout.addView(field);
+        new AlertDialog.Builder(this).setTitle("Gemini API 키")
+           .setView(layout)
+           .setPositiveButton("저장",(d,w)->{
+               String key=field.getText().toString().trim();
+               if(key.isEmpty()){status("변경 사항이 없습니다");return;}
+               if(apiVault.save(key)){
+                   prefs.edit().putBoolean("gemini_enabled",true).apply();
+                   status("Gemini API 키 등록 완료 · 통역 시작을 누르세요");
+               }else status("API 키 암호화 저장 실패");
+           })
+           .setNeutralButton("API 키 발급",(d,w)->{
+               try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://aistudio.google.com/apikey")));}
+               catch(Exception e){status("브라우저를 실행할 수 없습니다");}
+           })
+           .setNegativeButton("취소",null).show();
+    }
+    private void startGemini(String apiKey){
+        stopRecognizerOnly();
+        if(liveGemini!=null){liveGemini.stop();liveGemini=null;}
+        running=true;geminiActive=true;
+        partialEpoch++;partialSource="";partialTarget="";
+        micButton.setText("Ⅱ  일시정지");
+        micButton.setBackground(round(Color.rgb(205,81,92),Color.TRANSPARENT,14));
+        status("Gemini Live 연결 중…");
+        final GeminiLiveClient[] holder=new GeminiLiveClient[1];
+        GeminiLiveClient session=new GeminiLiveClient(new GeminiLiveClient.Listener(){
+            @Override public void status(String message){
+                if(running&&geminiActive&&liveGemini==holder[0])
+                    MainActivity.this.status(message);
+            }
+            @Override public void interim(String message){
+                if(!running||!geminiActive||liveGemini!=holder[0])return;
+                if(message.equals(partialSource))return;
+                partialSource=message;partialTarget="";
+                showTranscript();schedulePartial(message);
+            }
+            @Override public void committed(String message){
+                if(!running||!geminiActive||liveGemini!=holder[0])return;
+                if(message.isEmpty())return;
+                Phrase item=new Phrase(message);
+                phrases.add(item);lastResultAt=System.currentTimeMillis();
+                partialEpoch++;partialSource="";partialTarget="";
+                showTranscript();translateFinal(item);
+            }
+            @Override public void failure(String message){
+                if(!running||!geminiActive||liveGemini!=holder[0])return;
+                stopListening();MainActivity.this.status(message);
+                new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Gemini 실시간 음성 인식")
+                    .setMessage(message+"\n\nAPI 키, 네트워크 연결 및 사용량 한도를 확인하세요.")
+                    .setPositiveButton("확인",null).show();
+            }
+        });
+        holder[0]=session;liveGemini=session;
+        session.connect(apiKey,LOCALES[sourceIndex]);
+    }
+
     private void listenOnce(){
         if(!running||recognizer==null)return;
         try{
@@ -348,6 +442,8 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private void stopListening(){
         running=false;handler.removeCallbacksAndMessages(null);
         stopRecognizerOnly();
+        geminiActive=false;
+        if(liveGemini!=null){liveGemini.stop();liveGemini=null;}
         partialSource="";partialTarget="";
         if(micButton!=null){
             micButton.setText("●  통역 시작");
@@ -375,21 +471,34 @@ public final class MainActivity extends Activity implements RecognitionListener 
         showTranscript();schedulePartial(text);
     }
     private void schedulePartial(String text){
-        if(!translationReady)return;
         if(partialJob!=null)handler.removeCallbacks(partialJob);
         final int sequence=++partialEpoch;
+        long wait=Math.max(80,650-(SystemClock.elapsedRealtime()-lastPartialRequestAt));
         partialJob=()->{
             if(!running||!text.equals(partialSource)||sequence!=partialEpoch)return;
+            lastPartialRequestAt=SystemClock.elapsedRealtime();
             if(sourceIndex==targetIndex){partialTarget=text;showTranscript();return;}
             final Translator t=translator;
-            if(t==null)return;
-            t.translate(text).addOnSuccessListener(translated->{
-                if(running&&sequence==partialEpoch&&t==translator&&text.equals(partialSource)){
-                    partialTarget=translated;showTranscript();
+            if(translationReady&&t!=null){
+                t.translate(text).addOnSuccessListener(translated->{
+                    if(running&&sequence==partialEpoch&&t==translator&&text.equals(partialSource)){
+                        partialTarget=translated;showTranscript();
+                    }
+                }).addOnFailureListener(e->{});
+            }else if(geminiActive){
+                String key=apiVault.read();
+                if(!key.isEmpty()){
+                    final int src=sourceIndex,dst=targetIndex;
+                    geminiTranslator.translate(key,text,NAMES[src],NAMES[dst],(result,error)->runOnUiThread(()->{
+                        if(result!=null&&running&&sequence==partialEpoch&&
+                            src==sourceIndex&&dst==targetIndex&&text.equals(partialSource)){
+                            partialTarget=result;showTranscript();
+                        }
+                    }));
                 }
-            }).addOnFailureListener(e->{});
+            }
         };
-        handler.postDelayed(partialJob,350);
+        handler.postDelayed(partialJob,wait);
     }
     @Override public void onResults(Bundle b){
         if(!running)return;
@@ -421,12 +530,26 @@ public final class MainActivity extends Activity implements RecognitionListener 
     }
     private void translateFinal(Phrase p){
         if(sourceIndex==targetIndex){p.target=p.source;showTranscript();return;}
-        if(!translationReady||translator==null){showTranscript();return;}
+        final String key=apiVault.read();
+        if(!key.isEmpty()&&prefs.getBoolean("gemini_enabled",true)){
+            final int src=sourceIndex,dst=targetIndex;
+            geminiTranslator.translate(key,p.source,NAMES[src],NAMES[dst],(text,error)->runOnUiThread(()->{
+                if(!phrases.contains(p)||src!=sourceIndex||dst!=targetIndex)return;
+                if(text!=null&&!text.isEmpty()){
+                    p.target=text;showTranscript();
+                }else translateFinalLocal(p);
+            }));
+        }else translateFinalLocal(p);
+    }
+    private void translateFinalLocal(Phrase p){
+        if(sourceIndex==targetIndex){p.target=p.source;showTranscript();return;}
+        if(!translationReady||translator==null){
+            p.target="[번역 준비 중 · 모델 다운로드 확인]";showTranscript();return;
+        }
         final Translator t=translator;
-        t.translate(p.source).addOnSuccessListener(result->{
+        t.translate(p.source).addOnSuccessListener(text->{
             if(t!=translator||!phrases.contains(p))return;
-            p.target=result;
-            showTranscript();
+            p.target=text;showTranscript();
         }).addOnFailureListener(e->{
             if(t==translator&&phrases.contains(p)){
                 p.target="[번역 실패 · 인터넷/모델 확인]";
@@ -550,6 +673,27 @@ public final class MainActivity extends Activity implements RecognitionListener 
         ScrollView sc=new ScrollView(this);
         LinearLayout l=new LinearLayout(this);l.setOrientation(LinearLayout.VERTICAL);
         l.setPadding(dp(20),dp(8),dp(20),dp(12));sc.addView(l);
+        TextView heading=text("Gemini Live 음성 인식",17,PURPLE,true);
+        l.addView(heading);
+        TextView current=text("API 키: "+(apiVault.exists()?"● 등록됨":"○ 미등록")+
+             "\n음성: Gemini 3.5 Transcribe Live\n번역: Gemini 3.5 Flash-Lite",13,Color.DKGRAY,false);
+        current.setPadding(0,dp(8),0,dp(8));l.addView(current);
+        Switch geminiSwitch=new Switch(this);
+        geminiSwitch.setText("Gemini Live 실시간 인식 사용 (권장)");
+        geminiSwitch.setChecked(prefs.getBoolean("gemini_enabled",true));
+        l.addView(geminiSwitch);
+        TextView keyLabel=text("Gemini API 키 등록/변경",14,Color.DKGRAY,true);
+        keyLabel.setPadding(0,dp(12),0,0);l.addView(keyLabel);
+        EditText apiField=new EditText(this);
+        apiField.setSingleLine(true);apiField.setTextSize(14);
+        apiField.setHint("새 API 키 입력 (빈 칸이면 기존 키 유지)");
+        apiField.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        l.addView(apiField);
+        CheckBox deleteKey=new CheckBox(this);
+        deleteKey.setText("현재 저장된 Gemini API 키 삭제");
+        l.addView(deleteKey);
+        TextView warning=text("Gemini 서버로 음성이 전송됩니다. 인터넷 및 본인 API 키가 필요하며 사용량에 따라 요금이 발생할 수 있습니다.",12,Color.GRAY,false);
+        warning.setPadding(0,0,0,dp(16));l.addView(warning);
         TextView sizeLabel=text("자막 글자 크기  ·  "+fontSp+"sp",16,Color.DKGRAY,true);
         l.addView(sizeLabel);
         SeekBar size=new SeekBar(this);size.setMax(25);size.setProgress(fontSp-15);
@@ -587,6 +731,11 @@ public final class MainActivity extends Activity implements RecognitionListener 
              prefs.edit().putInt("font",fontSp).apply();initTranslation();
          })
          .setPositiveButton("설정 저장",(d,w)->{
+             if(deleteKey.isChecked())apiVault.clear();
+             else if(!apiField.getText().toString().trim().isEmpty()){
+                 if(!apiVault.save(apiField.getText().toString().trim()))status("Gemini 키 저장 실패");
+             }
+             prefs.edit().putBoolean("gemini_enabled",geminiSwitch.isChecked()).apply();
              boolean themeChanged=(dark!=theme.isChecked());
              dark=theme.isChecked();offlinePreferred=offline.isChecked();
              prefs.edit().putBoolean("dark",dark).putBoolean("offline",offlinePreferred)
@@ -616,6 +765,8 @@ public final class MainActivity extends Activity implements RecognitionListener 
     @Override protected void onDestroy(){
         running=false;handler.removeCallbacksAndMessages(null);
         stopRecognizerOnly();
+        if(liveGemini!=null){liveGemini.stop();liveGemini=null;}
+        if(geminiTranslator!=null)geminiTranslator.close();
         if(translator!=null){translator.close();translator=null;}
         if(database!=null)database.close();
         super.onDestroy();
