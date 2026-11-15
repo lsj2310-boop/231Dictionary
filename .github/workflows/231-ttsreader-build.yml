@@ -40,15 +40,15 @@ jobs:
       - name: Publish APK for direct download
         run: |
           mkdir -p downloads
-          cp app/build/outputs/apk/debug/app-debug.apk downloads/231TTSReader_v1.1.apk
+          cp app/build/outputs/apk/debug/app-debug.apk downloads/231TTSReader_v1.2.apk
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add downloads/231TTSReader_v1.1.apk
+          git add downloads/231TTSReader_v1.2.apk
           git commit -m "Publish 231 TTSReader v1.1 Android APK" || true
           git push origin HEAD:231-ttsreader-build
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: 231-TTSReader-APK
+          name: 231-TTSReader-v1.2-APK
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: warn
